@@ -166,8 +166,9 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
     <div class="sb-group">Weekly</div>
     <div class="sb-item" onclick="nav(&#39;weekly&#39;)"><div class="sb-dot"></div>Weekly Summary</div>
     <div class="sb-group">Records</div>
-    <div class="sb-item" onclick="nav(&#39;archive&#39;)"><div class="sb-dot"></div>Daily Archive</div>
-    <div class="sb-item" onclick="nav(&#39;schedule&#39;)"><div class="sb-dot"></div>Auto-Schedule</div>
+    <div class="sb-item" onclick="nav('accum')"><div class="sb-dot"></div>Accumulated Report</div>
+    <div class="sb-item" onclick="nav('archive')"><div class="sb-dot"></div>Daily Archive</div>
+    <div class="sb-item" onclick="nav(&#39;schedule&#39;)"><div class="sb-dot"></div>Send Report</div>
   </nav>
   <div class="sb-footer">
     <div id="sb-today">Wed, 15 Apr 2026</div>
@@ -210,7 +211,7 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
             <option value="Student Placement">Student Placement</option>
             <option value="Talent">Talent</option>
             <option value="Finance">Finance</option>
-            <option value="Office Management">Office Management</option>
+            <option value="Global">Global</option>
             <option value="Central Marketing">Central Marketing</option>
             <option value="Central Operations">Central Operations</option>
             <option value="Product">Product</option>
@@ -272,11 +273,27 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 <div class="section" id="s-report">
   <div class="page-hero"><h1>Daily Report</h1><p>Auto-generated from the uploaded snapshot.</p></div>
   <div class="page-body">
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="genReport()">Regenerate</button>
-      <button class="btn btn-green" onclick="saveRecord()">Save to Archive</button>
-      <button class="btn" onclick="printRpt()">Print / PDF</button>
-      <button class="btn" onclick="copyRpt()">Copy Text</button>
+    <!-- Compare-against selector -->
+    <div class="card" style="padding:14px 18px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Compare against (yesterday's record)</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter</div>
+          <select id="cmp-member" style="width:160px;" onchange="fillCmpDepts()">
+            <option value="">— auto (same recruiter)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
+          <select id="cmp-dept" style="width:200px;" onchange="genReport()">
+            <option value="">— all departments</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="genReport()">Regenerate</button>
+        <button class="btn btn-green" onclick="saveRecord()">Save to Archive</button>
+        <button class="btn" onclick="printRpt()">Print / PDF</button>
+        <button class="btn" onclick="copyRpt()">Copy Text</button>
+      </div>
     </div>
     <div id="rpt-wrap"><div class="empty">Upload a snapshot to generate your daily report.</div></div>
   </div>
@@ -284,16 +301,31 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 
 <!-- ══ COMPARE ══ -->
 <div class="section" id="s-compare">
-  <div class="page-hero"><h1>Day-over-Day Comparison</h1><p>Compare two saved snapshots side by side.</p></div>
+  <div class="page-hero"><h1>Day-over-Day Comparison</h1><p>Select two dates and filter by recruiter or department.</p></div>
   <div class="page-body">
     <div class="card">
-      <div class="g2">
-        <div><div style="font-size:11px;color:var(--text3);margin-bottom:5px;">Baseline (previous)</div><select id="cmp-from" style="width:100%"><option value="">— select</option></select></div>
-        <div><div style="font-size:11px;color:var(--text3);margin-bottom:5px;">Current (compare to)</div><select id="cmp-to" style="width:100%"><option value="">— select</option></select></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Date A — baseline</div>
+          <select id="cmp-from" style="width:180px;"><option value="">— select</option></select>
+        </div>
+        <div style="font-size:18px;color:var(--text3);padding-bottom:6px;">→</div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Date B — current</div>
+          <select id="cmp-to" style="width:180px;"><option value="">— select</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter</div>
+          <select id="cmp-rec" style="width:160px;"><option value="">— all recruiters</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
+          <select id="cmp-dep" style="width:200px;"><option value="">— all departments</option></select>
+        </div>
+        <button class="btn btn-primary" onclick="runCmp()">Run Comparison</button>
       </div>
-      <div style="margin-top:12px;"><button class="btn btn-primary" onclick="runCmp()">Run Comparison</button></div>
     </div>
-    <div id="cmp-wrap"><div class="empty">Select two dates to compare.</div></div>
+    <div id="cmp-wrap"><div class="empty">Select two dates and run comparison.</div></div>
   </div>
 </div>
 
@@ -345,40 +377,89 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
   </div>
 </div>
 
+<!-- ══ ACCUMULATED REPORT ══ -->
+<div class="section" id="s-accum">
+  <div class="page-hero">
+    <h1>Daily Accumulated Report</h1>
+    <p>Pick a date — pulls all saved records for that day across every recruiter.</p>
+  </div>
+  <div class="page-body">
+
+    <!-- Date picker + controls -->
+    <div class="card">
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Report date</div>
+          <select id="accum-date" style="width:220px;" onchange="genAccum()">
+            <option value="">— select a date</option>
+          </select>
+        </div>
+        <div id="accum-found" style="font-size:12px;color:var(--text3);padding-bottom:7px;"></div>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="genAccum()">Build Report</button>
+          <button class="btn btn-green" onclick="sendAccumReport()">Send Report Now</button>
+          <button class="btn" onclick="printAccum()">Print / PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="accum-wrap"><div class="empty">Select a date above to build the accumulated team report.</div></div>
+  </div>
+</div>
+
 <!-- ══ SCHEDULE ══ -->
 <div class="section" id="s-schedule">
-  <div class="page-hero"><h1>Auto-Schedule</h1><p>Nightly consolidation · Friday end-of-week summary.</p></div>
+  <div class="page-hero"><h1>Send Report</h1><p>Send today's report to your inbox · Friday weekly summary · Server status.</p></div>
   <div class="page-body">
-    <div class="g2">
-      <div class="card">
-        <div class="ct">Nightly Consolidation</div>
-        <div class="cs">Runs at 12:00 AM while this tab is open.</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="sb-active">● Active</span></div>
-        <div class="step"><div class="step-dot done">✓</div><div><div class="step-title">Collect all saved records</div><div class="step-desc">From browser storage</div></div></div>
-        <div class="step"><div class="step-dot">→</div><div><div class="step-title">Available in Archive + Weekly</div><div class="step-desc">Ready next morning</div></div></div>
-        <div class="divider"></div>
-        <div style="font-size:12px;color:var(--text3);">Next: <strong id="next-mid" style="color:var(--text);">Thu 16 Apr 12:00 AM</strong></div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Last: <strong id="last-mid" style="color:var(--text);">Not yet run</strong></div>
+
+    <!-- Send report card — hero action -->
+    <div class="card" style="border:2px solid var(--purple);margin-bottom:16px;">
+      <div class="ct">Send today's report</div>
+      <div class="cs">Generates a self-contained HTML report and emails it as an attachment to tenille.kok@cialfo.com.sg</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn btn-primary" style="font-size:14px;padding:9px 22px;" onclick="manualSendNow()">Send Report Now</button>
+        <div style="font-size:12px;color:var(--text3);">Last sent: <strong id="last-email" style="color:var(--text);">Not yet sent</strong></div>
       </div>
+    </div>
+
+    <!-- Server status -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="ct">Local server status</div>
+      <div class="cs">The Node.js server must be running for the Send button to work.</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="srv-dot" style="width:10px;height:10px;border-radius:50%;background:#888;flex-shrink:0;"></div>
+        <span id="srv-lbl" style="font-size:12px;color:var(--text2);">Checking…</span>
+        <button class="btn btn-sm" onclick="checkServerStatus()" style="margin-left:auto;">Refresh</button>
+      </div>
+      <div style="font-size:12px;color:var(--text3);background:var(--bg2);border-radius:var(--rs);padding:10px 12px;line-height:1.8;">
+        First time setup — run once in Terminal:<br>
+        <code style="font-size:11px;color:var(--purple);">cd /path/to/ta-report &amp;&amp; chmod +x setup.sh &amp;&amp; ./setup.sh</code>
+      </div>
+    </div>
+
+    <div class="g2">
+      <!-- Friday summary -->
       <div class="card">
         <div class="ct">End-of-Week Summary</div>
-        <div class="cs">Compiles every Friday at 11:59 PM.</div>
+        <div class="cs">Auto-compiles every Friday at 11:59 PM.</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="sb-active">● Active</span></div>
         <div class="step"><div class="step-dot done">✓</div><div><div class="step-title">Collect Mon–Fri records</div><div class="step-desc">Grouped by ISO week</div></div></div>
         <div class="step"><div class="step-dot">→</div><div><div class="step-title">Available in Weekly Summary</div><div class="step-desc">Exportable to CSV</div></div></div>
         <div class="divider"></div>
-        <div style="font-size:12px;color:var(--text3);">Next: <strong id="next-fri" style="color:var(--text);">Friday 17 Apr 11:59 PM</strong></div>
+        <div style="font-size:12px;color:var(--text3);">Next: <strong id="next-fri" style="color:var(--text);">—</strong></div>
+      </div>
+
+      <!-- Other triggers -->
+      <div class="card">
+        <div class="ct">Other actions</div>
+        <div class="btn-row" style="flex-direction:column;align-items:flex-start;">
+          <button class="btn btn-green" onclick="compileWeekly()">Compile Weekly Now</button>
+          <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="clearAll()">Clear All Data</button>
+        </div>
+        <div id="sched-log" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
       </div>
     </div>
-    <div class="card">
-      <div class="ct">Manual triggers</div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="runMidnight()">Run Nightly Now</button>
-        <button class="btn btn-green" onclick="compileWeekly()">Compile Weekly Now</button>
-        <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="clearAll()">Clear All Data</button>
-      </div>
-      <div id="sched-log" style="font-size:12px;color:var(--text3);"></div>
-    </div>
+
   </div>
 </div>
 
@@ -400,8 +481,8 @@ document.addEventListener('DOMContentLoaded',function(){
   var t=new Date();
   document.getElementById('sb-today').textContent=fmtD(t);
   document.getElementById('up-date').value=toIn(t);
-  updateSbLast();fillWeekSels();fillMbSels();fillDateSels();renderArchive();
-  schedMidnight();schedFriday();updateSchedUI();
+  updateSbLast();fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();
+  schedFriday();updateSchedUI();checkServerStatus();
 });
 
 /* ════ NAV ════ */
@@ -411,6 +492,7 @@ function nav(id){
   var sec=document.getElementById('s-'+id);if(sec)sec.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(function(i){if((i.getAttribute('onclick')||'').indexOf("'"+id+"'")>-1)i.classList.add('active');});
   if(id==='report'&&P.rows.length)genReport();
+  if(id==='accum'){fillAccumDates();genAccum();}
   if(id==='weekly'){fillWeekSels();renderWeekly();}
   if(id==='archive')renderArchive();
   if(id==='compare')fillDateSels();
@@ -502,9 +584,23 @@ function parseTextRaw(raw,fname){
 
   var filtered=ALL_ROWS.filter(function(r){return matchesStep1(r.reportDate||'');});
 
-  if(filtered.length===0 && step1Date){
+  /* Filter by department from Step 1 — but only if it actually reduces the results.
+     If no rows match the dept, skip the dept filter (the CSV may use different dept names). */
+  var step1Dept=(document.getElementById('up-dept').value||'').trim();
+  if(step1Dept&&filtered.length>0){
+    var deptFiltered=filtered.filter(function(r){
+      var d=(r.dept||'').trim().toLowerCase();
+      var s=step1Dept.toLowerCase();
+      if(!d)return true; /* no dept col in this CSV — include row */
+      if(s==='k12 cialfo & bridgeu')return d.indexOf('k12')>-1;
+      return d===s||d.indexOf(s)>-1||s.indexOf(d)>-1;
+    });
+    /* Only apply dept filter if it matched something — otherwise show all date-filtered rows */
+    if(deptFiltered.length>0)filtered=deptFiltered;
+  }
+
+  if(filtered.length===0){
     var firstRow=ALL_ROWS[0]||{};
-    /* Also show the raw first 4 lines of the CSV for diagnosis */
     var rawLines=LAST_RAW.split('\n').slice(0,6).join('\n');
     var debugInfo='Step 1 date: '+step1Date+'\n';
     debugInfo+='Total rows parsed: '+ALL_ROWS.length+'\n';
@@ -513,7 +609,7 @@ function parseTextRaw(raw,fname){
     debugInfo+='First data row: '+JSON.stringify(firstRow).slice(0,300)+'\n\n';
     debugInfo+='--- Raw CSV first 6 lines ---\n'+rawLines;
     document.getElementById('ai-status').innerHTML=
-      '<div class="notice nr" style="margin-bottom:6px;">No rows matched '+escH(step1Date)+'. Debug info:</div>'+
+      '<div class="notice nr" style="margin-bottom:6px;">No rows matched. Debug info:</div>'+
       '<div style="background:#1a1a18;color:#7cfc00;font-size:10px;font-family:monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;">'+escH(debugInfo)+'</div>';
     return;
   }
@@ -527,7 +623,8 @@ function parseTextRaw(raw,fname){
   P.roleType=document.getElementById('up-role').value;
 
   var msg='\u2713 '+fname+' \u00b7 '+final.length+' roles';
-  if(step1Date&&ALL_ROWS.length>final.length)msg+=' for '+step1Date+' (filtered from '+ALL_ROWS.length+' total rows)';
+  if(step1Date&&ALL_ROWS.length>final.length)msg+=' for '+step1Date;
+  msg+=' (from '+ALL_ROWS.length+' total rows)';
   showStatus('ng',msg);
   showPreview(final,null);
 }
@@ -541,6 +638,7 @@ function parseTextRaw(raw,fname){
 var FIELD_PATTERNS=[
   ['roleTitle',          ['role title']],
   ['location',           ['location']],
+  ['dept',               ['department','dept','team']],/* col 2 — blank header, fallback by position */
   ['hm',                 ['hiring manager']],
   ['priority',           ['priority','priority (high/med/low)','priority (high/mid/low)']],
   ['startDate',          ['start date']],
@@ -583,81 +681,100 @@ function mapH(raw){
   }
   return null;
 }
-function detectDelim(line){
-  var c={',':0,'\t':0,';':0};
-  for(var i=0;i<line.length;i++){if(c[line[i]]!==undefined)c[line[i]]++;}
-  return Object.keys(c).reduce(function(a,b){return c[a]>=c[b]?a:b;});
-}
+/* ════ CSV PARSER — exact column positions from your spreadsheet ════
+   Row 0: blank
+   Row 1: group headers (ROLE DETAILS, DAILY ACTIVITY…)
+   Row 2: column headers  ← this is the header row
+   Row 3+: data
 
-/* Full CSV parser that handles quoted multi-line cells */
+   col 0  Role Title
+   col 1  Location
+   col 2  (dept/team — blank header)
+   col 3  Hiring Manager
+   col 4  Priority
+   col 5  Start Date
+   col 6  Target Offer Date
+   col 7  Report Date          ← key filter column
+   col 8  Headcount
+   col 9  Recruiter Screening
+   col 10 Screened Today
+   col 11 Sourced Today
+   col 12 Awating Schedule (Candidates)  → calendly
+   col 13 Interview Scheduled (Today)    → screenedToday (alt)
+   col 14 Interview 1 (F1)
+   col 15 Interview 2 (F2/N/A)
+   col 16 Final Interview
+   col 17 Assessment
+   col 18 Stage Target
+   col 19 Confidence
+   col 20 Total in Stages
+   col 21 Stage Target Met?
+   col 22 Days Remaining
+*/
+
 function parseCSVFull(raw){
+  /* Proper RFC-4180 parser — handles quoted multi-line cells */
   var rows=[],cur=[],cell='',inQ=false;
   for(var i=0;i<raw.length;i++){
     var ch=raw[i],nx=raw[i+1];
     if(inQ){
       if(ch==='"'&&nx==='"'){cell+='"';i++;}
       else if(ch==='"'){inQ=false;}
-      else{cell+=ch;}
+      else cell+=ch;
     } else {
       if(ch==='"'){inQ=true;}
       else if(ch===','){cur.push(cell.trim());cell='';}
-      else if(ch==='\n'||(ch==='\r'&&nx==='\n')){
-        if(ch==='\r')i++;
-        cur.push(cell.trim());cell='';
-        rows.push(cur);cur=[];
-      } else if(ch==='\r'){
-        cur.push(cell.trim());cell='';
-        rows.push(cur);cur=[];
-      } else {cell+=ch;}
+      else if(ch==='\r'&&nx==='\n'){cur.push(cell.trim());cell='';rows.push(cur);cur=[];i++;}
+      else if(ch==='\r'||ch==='\n'){cur.push(cell.trim());cell='';rows.push(cur);cur=[];}
+      else cell+=ch;
     }
   }
-  if(cell||cur.length){cur.push(cell.trim());rows.push(cur);}
+  if(cell.trim()||cur.length){cur.push(cell.trim());rows.push(cur);}
   return rows;
 }
 
 function tryDirectCSV(raw){
-  var rows=parseCSVFull(raw);
-  if(rows.length<2)return null;
+  var allRows=parseCSVFull(raw);
+  if(allRows.length<3)return null;
 
-  /* Find header row: the row with the highest mapH score that includes 'reportDate' AND 'roleTitle' */
-  var bestHi=-1,bestScore=0;
-  for(var i=0;i<Math.min(10,rows.length);i++){
-    var cells=rows[i];
-    if(cells.length<3)continue;
-    var score=0,hasDate=false,hasRole=false;
-    cells.forEach(function(cell){
-      var f=mapH(cell);
-      if(f){score++;if(f==='reportDate')hasDate=true;if(f==='roleTitle')hasRole=true;}
-    });
-    var weighted=score+(hasDate?10:0)+(hasRole?10:0);
-    if(weighted>bestScore){bestScore=weighted;bestHi=i;}
+  /* Find the header row — it's the first row where col 0 normalises to 'role title' */
+  var headerIdx=-1;
+  for(var i=0;i<Math.min(10,allRows.length);i++){
+    var cells=allRows[i];
+    var col0=(cells[0]||'').replace(/\n/g,' ').trim().toLowerCase();
+    if(col0==='role title'){headerIdx=i;break;}
   }
-  if(bestHi===-1||bestScore<5)return null;
+  if(headerIdx===-1)return null;
 
-  /* Build column index map */
-  var hdrs=rows[bestHi];
+  /* Build field→colIndex map from header row, collapsing embedded newlines */
+  var hdrs=allRows[headerIdx].map(function(h){return h.replace(/\n/g,' ').trim();});
   var ci={};
-  hdrs.forEach(function(h,idx){var f=mapH(h);if(f&&ci[f]===undefined)ci[f]=idx;});
-  if(Object.keys(ci).length<3)return null;
+  hdrs.forEach(function(h,idx){
+    var f=mapH(h);
+    if(f&&ci[f]===undefined)ci[f]=idx;
+  });
+  /* col 2 is dept (blank header in this CSV) */
+  if(ci.dept===undefined)ci.dept=2;
+
+  /* Must have at minimum roleTitle + reportDate */
+  if(ci.roleTitle===undefined||ci.reportDate===undefined)return null;
 
   /* Parse data rows */
   var dataRows=[];
-  for(var r=bestHi+1;r<rows.length;r++){
-    var cells=rows[r];
-    if(cells.every(function(c){return!c;}))continue;
-    /* Skip header-like rows */
-    var hdrScore=0;
-    cells.forEach(function(c){if(mapH(c))hdrScore++;});
-    if(hdrScore>=4)continue;
+  for(var r=headerIdx+1;r<allRows.length;r++){
+    var cells=allRows[r];
+    /* Skip blank rows */
+    if(!cells.length||cells.every(function(c){return!c.trim();}))continue;
+    /* Skip any row that looks like a header (first cell maps to a field name) */
+    if(mapH((cells[0]||'').replace(/\n/g,' ')))continue;
+    /* Skip rows with no role title */
+    var roleVal=(cells[ci.roleTitle]||'').trim();
+    if(!roleVal||roleVal.length<2)continue;
+
     var row={};
-    Object.keys(ci).forEach(function(f){row[f]=(cells[ci[f]]||'').trim();});
-    if(!row.roleTitle){
-      for(var c=0;c<Math.min(cells.length,5);c++){
-        var v=(cells[c]||'').trim();
-        if(v.length>1&&isNaN(v)&&v!=='NA'&&v!=='N/A'&&!mapH(v)){row.roleTitle=v;break;}
-      }
-    }
-    if(!row.roleTitle||mapH(row.roleTitle))continue;
+    Object.keys(ci).forEach(function(f){
+      row[f]=(cells[ci[f]]||'').replace(/\n/g,' ').trim();
+    });
     dataRows.push(row);
   }
   return dataRows.length>0?dataRows:null;
@@ -761,11 +878,39 @@ var MC=['#6c63ff','#16a34a','#0891b2','#d97706','#dc2626','#7c3aed'];
 function mCol(name){return MCOLS[name]||(function(n){var h=0;for(var i=0;i<n.length;i++){h=((h<<5)-h)+n.charCodeAt(i);h|=0;}return MC[Math.abs(h)%MC.length];})(name);}
 
 /* ════ GENERATE REPORT — PDF FORMAT ════ */
-function dv(v){/* display value: blank/dash → — */var s=String(v||'').trim();return(s===''||s==='0'||s==='-')?'—':s;}
-function dc(v){/* delta cell */var s=String(v||'').trim();if(!s||s==='0'||s==='—'||s==='-')return'<span style="color:#aaa;">—</span>';var num=parseInt(s);if(!isNaN(num)){return num>0?'<span style="color:#16a34a;font-weight:600;">+'+num+'</span>':num<0?'<span style="color:#dc2626;font-weight:600;">'+num+'</span>':'<span style="color:#aaa;">—</span>';}return'<span style="color:#aaa;">'+escH(s)+'</span>';}
+function dv(v){var s=String(v||'').trim();return(s===''||s==='0'||s==='-')?'—':s;}
+function dvRaw(v){var s=String(v||'').trim();return(s===''||s==='-')?0:parseInt(s)||0;}
+function dc(v){
+  if(v===null||v===undefined)return'<td style="text-align:center;color:#aaa;font-size:11px;">—</td>';
+  var num=parseInt(v);
+  if(isNaN(num)||num===0)return'<td style="text-align:center;color:#aaa;font-size:11px;">—</td>';
+  var s=num>0?'+'+num:String(num);
+  var c=num>0?'#16a34a':'#dc2626';
+  return'<td style="text-align:center;font-weight:700;font-size:11px;color:'+c+';">'+s+'</td>';
+}
+function dcInline(v){
+  if(v===null||v===undefined)return'<span style="color:#aaa;">—</span>';
+  var num=parseInt(v);
+  if(isNaN(num)||num===0)return'<span style="color:#aaa;">—</span>';
+  var s=num>0?'+'+num:String(num);
+  return'<span style="font-weight:700;color:'+(num>0?'#16a34a':'#dc2626')+';">'+s+'</span>';
+}
 function pBadge(v){var p=(v||'').toLowerCase();return'<span class="badge '+(p==='high'?'bh':p==='low'?'bl':'bm')+'" style="font-size:10px;">'+(p==='high'?'High':p==='low'?'Low':'Mid')+'</span>';}
-function confBadge(v){var c=(v||'').toLowerCase();var cls=c.indexOf('track')>-1?'bg':c.indexOf('uncertain')>-1?'ba':c.indexOf('delay')>-1?'br':'';return cls&&v?'<span class="badge '+cls+'" style="font-size:10px;">'+escH(v)+'</span>':'<span style="color:#aaa;">—</span>';}
-function metBadge(v){var m=(v||'').toLowerCase();if(m.indexOf('met')>-1||m==='yes'||m==='✓'||m==='true')return'<span style="color:#16a34a;font-weight:700;">Met ✓</span>';if(m&&m!=='—'&&m!=='')return'<span style="color:#d97706;font-size:10px;">'+escH(v)+'</span>';return'<span style="color:#aaa;">—</span>';}
+function confBadge(v){
+  var c=(v||'').toLowerCase();
+  if(c.indexOf('track')>-1)return'<span style="color:#16a34a;font-weight:600;font-size:11px;">On Track</span>';
+  if(c.indexOf('uncertain')>-1)return'<span style="color:#d97706;font-weight:600;font-size:11px;">Uncertain</span>';
+  if(c.indexOf('delay')>-1)return'<span style="color:#dc2626;font-weight:600;font-size:11px;">Delayed</span>';
+  return'<span style="color:#aaa;">—</span>';
+}
+function metBadge(v){
+  var m=(v||'').toLowerCase();
+  if(m.indexOf('met')>-1||m==='yes'||m==='✓'||m==='true')return'<span style="color:#16a34a;font-weight:700;">Met ✓</span>';
+  if(m==='close'||m.indexOf('close')>-1)return'<span style="color:#d97706;font-weight:600;">Close</span>';
+  if(m==='behind'||m.indexOf('behind')>-1)return'<span style="color:#dc2626;font-weight:600;">Behind</span>';
+  if(m&&m!=='—'&&m!=='')return'<span style="color:#d97706;font-size:10px;">'+escH(v)+'</span>';
+  return'<span style="color:#aaa;">—</span>';
+}
 
 function genReport(){
   if(!P.rows.length){document.getElementById('rpt-wrap').innerHTML='<div class="empty">Upload a snapshot to generate your daily report.</div>';return;}
@@ -774,6 +919,68 @@ function genReport(){
   var col=mCol(P.member);
   var reportDate=P.date||toIn(new Date());
   var reportDateFmt=fmtLong(reportDate);
+  var reportDateShort=fmtShort(reportDate);
+
+  /* ── Resolve compare-against: recruiter selector → dept filter → date override ── */
+  var cmpMember=(document.getElementById('cmp-member')||{value:''}).value||P.member;
+  var cmpDept=(document.getElementById('cmp-dept')||{value:''}).value||'';
+
+  /* Compute yesterday string from reportDate */
+  function getYesterdayStr(ds){
+    var d=parseDateStr(ds);if(!d)return'';
+    d.setDate(d.getDate()-1);
+    return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+  }
+  var yesterdayStr=getYesterdayStr(reportDate);
+  var yesterdayFmt=fmtLong(yesterdayStr);
+  var yesterdayShort=fmtShort(yesterdayStr);
+
+  /* Find prev record: exact date match + chosen recruiter + optional dept filter */
+  var allSaved=ls();
+  var prevRecord=null;
+  var prevCandidates=allSaved.filter(function(r){
+    if(r.date!==yesterdayStr)return false;
+    if(r.member!==cmpMember)return false;
+    if(cmpDept&&r.dept&&r.dept!==cmpDept)return false;
+    return r.rows&&r.rows.length;
+  });
+  if(prevCandidates.length>0)prevRecord=prevCandidates[0];
+  var prevMissing=!prevRecord;
+
+  /* Build lookup map from prev record rows */
+  var prevMap={};
+  if(prevRecord&&prevRecord.rows){
+    prevRecord.rows.forEach(function(r){
+      var key=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+      if(key&&!prevMap[key])prevMap[key]=r;
+      var key2=key+'|'+(r.hm||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+      if(key2&&!prevMap[key2])prevMap[key2]=r;
+    });
+  }
+  function getPrev(r){
+    var rt=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+    var hm=(r.hm||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+    return prevMap[rt+'|'+hm]||prevMap[rt]||null;
+  }
+  function deltaVal(todayVal,prevRow,field){
+    if(!prevRow)return null;
+    return n(todayVal)-n(prevRow[field]||0);
+  }
+
+  /* Snapshot deltas for overview tiles */
+  var prevSnap=prevRecord&&prevRecord.snap?prevRecord.snap:null;
+  function tileArrow(today,prev){
+    if(prev===null||prev===undefined)return'';
+    var d=today-prev;
+    var arr=d>0?'↑':d<0?'↓':'';
+    var c=d>0?'#16a34a':d<0?'#dc2626':'#888';
+    if(d===0)return'<div style="font-size:11px;color:#888;margin-top:3px;">No change vs yesterday ('+prev+')</div>';
+    return'<div style="font-size:11px;color:'+c+';font-weight:600;margin-top:3px;">'+arr+' '+(d>0?'+':'')+d+' vs yesterday ('+prev+')</div>';
+  }
+
+  /* Locations summary for open roles */
+  var locSet={};P.rows.forEach(function(r){if(r.location)locSet[r.location]=1;});
+  var locStr=Object.keys(locSet).join(' & ')||'';
 
   /* Group rows by HM */
   var hmOrder=[],hmMap={};
@@ -783,51 +990,89 @@ function genReport(){
     hmMap[hm].push(r);
   });
 
-  /* High-priority roles for sourcing section */
+  /* High-priority rows for sourcing section */
   var highRows=P.rows.filter(function(r){return(r.priority||'').toLowerCase()==='high';});
 
   var H='<div id="report-card" style="background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">';
 
-  /* ── HEADER ── */
+  /* ══ HEADER ══ */
   H+='<div style="background:'+col+';color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:flex-start;">';
-  H+='<div><div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:3px;">Daily Talent Acquisition Report</div>';
+  H+='<div>';
+  H+='<div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:3px;">Daily Talent Acquisition Report</div>';
   H+='<div style="font-size:22px;font-weight:800;letter-spacing:-.02em;">'+escH(P.member)+'</div>';
-  H+='<div style="font-size:13px;opacity:.75;margin-top:3px;">'+escH(reportDateFmt)+(P.dept?'&nbsp;·&nbsp;<span style="background:rgba(255,255,255,0.18);padding:2px 10px;border-radius:99px;font-size:12px;">'+escH(P.dept)+'</span>':'')+'</div></div>';
-  H+='<div style="text-align:right;font-size:12px;opacity:.75;line-height:2;">'+escH(P.member.toUpperCase()+' OVERVIEW')+' · '+escH((new Date(reportDate+'T00:00:00')).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}).toUpperCase())+'</div></div>';
+  H+='<div style="font-size:13px;opacity:.85;margin-top:2px;">'+escH(reportDateFmt)+'</div>';
+  if(!prevMissing)H+='<div style="font-size:12px;opacity:.65;margin-top:1px;">Compared to '+escH(yesterdayFmt)+'</div>';
+  if(P.dept)H+='<div style="margin-top:5px;"><span style="background:rgba(255,255,255,0.18);padding:2px 10px;border-radius:99px;font-size:12px;">'+escH(P.dept)+'</span></div>';
+  H+='</div>';
+  H+='<div style="text-align:right;font-size:12px;opacity:.75;line-height:1.9;">';
+  H+='<div style="font-weight:700;letter-spacing:.06em;">'+escH(P.member.toUpperCase())+' OVERVIEW · '+escH(reportDateShort.toUpperCase())+'</div>';
+  if(!prevMissing)H+='<div style="font-size:11px;opacity:.7;">vs '+escH(yesterdayShort)+(cmpMember!==P.member?' · '+escH(cmpMember):'')+'</div>';
+  H+='</div></div>';
 
-  /* ── OVERVIEW TILES ── */
+  /* ── MISSING YESTERDAY NOTICE ── */
+  if(prevMissing){
+    H+='<div style="background:#fffbeb;border-bottom:2px solid #fbbf24;padding:9px 18px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:8px;">';
+    H+='<span style="font-size:16px;">⚠</span>';
+    H+='<span><strong>No saved record found for '+escH(yesterdayStr)+(cmpMember?' ('+escH(cmpMember)+')':'')+'.</strong> Save that day\'s report to the Archive first — then regenerate to see +/− columns.</span>';
+    H+='</div>';
+  }
+
+  /* ══ OVERVIEW TILES ══ */
   H+='<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid #e4e2da;">';
-  [
-    {l:'Open roles',v:snap.totalRoles,sub:snap.totalRoles+' HC'},
-    {l:'Screened today',v:snap.screenedToday,sub:snap.screenedToday+' today'},
-    {l:'Total in interview stages',v:snap.totalInStages,sub:snap.totalInStages+' / '+(snap.totalInStages+snap.assessment||snap.totalInStages)},
-    {l:'Roles meeting stage target',v:snap.stageMet+' / '+snap.totalRoles,sub:Math.round(snap.stageMet/Math.max(snap.totalRoles,1)*100)+'%'},
-    {l:'Confidence split',v:'',sub:''},
-    {l:'',v:'',sub:''}
-  ].forEach(function(t,i){
-    if(i===4){
-      H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Confidence split</div>';
-      H+='<div style="display:flex;gap:12px;align-items:flex-end;">';
-      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#16a34a;">'+snap.onTrack+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">On track</div></div>';
-      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#d97706;">'+snap.uncertain+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Uncertain</div></div>';
-      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#dc2626;">'+snap.delayed+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Delayed</div></div>';
-      H+='</div></div>';
-    } else if(i===5){
-      H+='<div style="padding:14px 10px;background:#f5f4f0;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Priority split</div>';
-      H+='<div><span class="badge bh" style="margin-bottom:4px;display:inline-block;">High: '+snap.priHigh+'</span><br>';
-      H+='<span class="badge bm" style="margin-bottom:4px;display:inline-block;">Mid: '+snap.priMid+'</span><br>';
-      H+='<span class="badge bl" style="display:inline-block;">Low: '+snap.priLow+'</span></div></div>';
-    } else {
-      H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;">';
-      H+='<div style="font-size:26px;font-weight:800;color:'+col+';line-height:1;">'+escH(String(t.v))+'</div>';
-      H+='<div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;margin-top:4px;line-height:1.4;">'+escH(t.l)+'</div>';
-      if(t.sub)H+='<div style="font-size:11px;color:#aaa;margin-top:3px;">'+escH(t.sub)+'</div>';
-      H+='</div>';
-    }
-  });
+
+  /* Tile 1: Open roles */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.totalRoles+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Open roles</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+snap.totalRoles+' HC'+(locStr?' · '+escH(locStr):'')+'</div>';
   H+='</div>';
 
-  /* ── CONFIDENCE KEY ── */
+  /* Tile 2: Screened today */
+  var scrDelta=prevSnap?snap.screenedToday-prevSnap.screenedToday:null;
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.screenedToday+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
+  H+=tileArrow(snap.screenedToday,prevSnap?prevSnap.screenedToday:null);
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.screenedToday+' today</div>';
+  H+='</div>';
+
+  /* Tile 3: Total in interview stages */
+  var stageDelta=prevSnap?snap.totalInStages-prevSnap.totalInStages:null;
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.totalInStages+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Total in interview stages</div>';
+  H+=tileArrow(snap.totalInStages,prevSnap?prevSnap.totalInStages:null);
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.totalInStages+' / '+(snap.totalInStages+snap.assessment||snap.totalInStages)+'</div>';
+  H+='</div>';
+
+  /* Tile 4: Roles meeting stage target */
+  var metPct=Math.round(snap.stageMet/Math.max(snap.totalRoles,1)*100);
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.stageMet+' / '+snap.totalRoles+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Roles meeting stage target</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+snap.stageMet+' met ≥6 in stages or ≥2 Final</div>';
+  H+='<div style="font-size:11px;color:#aaa;">'+metPct+'%</div>';
+  H+='</div>';
+
+  /* Tile 5: Confidence split */
+  H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Confidence split</div>';
+  H+='<div style="display:flex;gap:10px;align-items:flex-end;">';
+  H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#16a34a;">'+snap.onTrack+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">On track</div></div>';
+  H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#d97706;">'+snap.uncertain+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Uncertain</div></div>';
+  H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#dc2626;">'+snap.delayed+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Delayed</div></div>';
+  H+='</div></div>';
+
+  /* Tile 6: Priority split */
+  H+='<div style="padding:14px 10px;background:#f5f4f0;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Priority split</div>';
+  H+='<div><span class="badge bh" style="margin-bottom:4px;display:inline-block;">High: '+snap.priHigh+'</span><br>';
+  H+='<span class="badge bm" style="margin-bottom:4px;display:inline-block;">Mid: '+snap.priMid+'</span><br>';
+  H+='<span class="badge bl" style="display:inline-block;">Low: '+snap.priLow+'</span></div></div>';
+
+  H+='</div>';/* end overview grid */
+
+  /* ══ CONFIDENCE KEY ══ */
   H+='<div style="background:#fffbeb;border-bottom:1px solid #e4e2da;padding:8px 16px;font-size:10px;color:#92400e;line-height:1.7;">';
   H+='<strong>CONFIDENCE KEY</strong>&nbsp; ';
   H+='<strong style="color:#16a34a;">On track</strong> — ≥6 in stages or ≥2 at Final; activity consistent with pace needed to hit offer date&nbsp;&nbsp;';
@@ -835,102 +1080,112 @@ function genReport(){
   H+='<strong style="color:#dc2626;">Delayed</strong> — insufficient depth and/or activity; current trajectory will not meet target offer date without intervention';
   H+='</div>';
 
-  /* ── PER-HM SECTIONS ── */
+  /* ══ PER-HM SECTIONS ══ */
   hmOrder.forEach(function(hm){
     var rows=hmMap[hm];
-    var hmSnap={met:0,onTrack:0,uncertain:0,delayed:0,scrTot:0,assTot:0,iv1Tot:0,iv2Tot:0,finTot:0,stagesTot:0};
+    var hmSnap={met:0,onTrack:0,uncertain:0,delayed:0};
     rows.forEach(function(r){
       var met=(r.stageTargetMet||'').toLowerCase();
       if(met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true')hmSnap.met++;
       var conf=(r.confidence||'').toLowerCase();
       if(conf.indexOf('track')>-1)hmSnap.onTrack++;else if(conf.indexOf('uncertain')>-1)hmSnap.uncertain++;else if(conf.indexOf('delay')>-1)hmSnap.delayed++;
-      hmSnap.scrTot+=n(r.screenedToday);hmSnap.assTot+=n(r.assessment);hmSnap.iv1Tot+=n(r.iv1);hmSnap.iv2Tot+=n(r.iv2);hmSnap.finTot+=n(r.finalIv);
-      hmSnap.stagesTot+=n(r.totalInStages)||(n(r.iv1)+n(r.iv2)+n(r.finalIv)+n(r.assessment));
     });
 
-    /* HM header bar */
+    /* HM initials */
     var initials=hm.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+
+    /* HM header bar */
     H+='<div style="background:#1a1a18;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:2px solid '+col+';">';
     H+='<div style="width:32px;height:32px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escH(initials)+'</div>';
     H+='<div><div style="font-size:14px;font-weight:700;">'+escH(hm)+'</div>';
     H+='<div style="font-size:11px;opacity:.6;">'+rows.length+' role'+(rows.length!==1?'s':'')+' &nbsp;·&nbsp; '+hmSnap.met+' of '+rows.length+' stage target met</div></div>';
-    H+='<div style="margin-left:auto;display:flex;gap:12px;font-size:12px;">';
+    H+='<div style="margin-left:auto;display:flex;gap:14px;font-size:12px;">';
     if(hmSnap.onTrack)H+='<span style="color:#4ade80;">'+hmSnap.onTrack+' on track</span>';
     if(hmSnap.uncertain)H+='<span style="color:#fbbf24;">'+hmSnap.uncertain+' uncertain</span>';
     if(hmSnap.delayed)H+='<span style="color:#f87171;">'+hmSnap.delayed+' delayed</span>';
     H+='</div></div>';
 
-    /* Role table */
+    /* Role table — columns match template exactly */
     H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
-    /* Column header row — matches PDF exactly */
     H+='<thead>';
+    /* Group header row */
     H+='<tr style="background:#f5f4f0;">';
-    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;min-width:160px;">Role</th>';
-    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Priority</th>';
-    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;text-align:center;">Days Left</th>';
-    /* Paired columns: Today + ±  */
-    var pairCols=[
-      {l:'Screened',bg:'#f0fdf4',tc:'#166534'},
-      {l:'Assessment',bg:'#f0fdf4',tc:'#166534'},
-      {l:'F1',bg:'#f5f3ff',tc:'#5b21b6'},
-      {l:'F2',bg:'#f5f3ff',tc:'#5b21b6'},
-      {l:'Final',bg:'#f5f3ff',tc:'#5b21b6'},
-      {l:'In Stages',bg:'#fdf4ff',tc:'#7e22ce'}
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;min-width:150px;">Role</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Priority</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;white-space:nowrap;">Days<br>Left</th>';
+    var grpCols=[
+      {l:'Screened',bg:'#f0fdf4',tc:'#166534',span:2},
+      {l:'Assessment',bg:'#f0fdf4',tc:'#166534',span:2},
+      {l:'F1',bg:'#f5f3ff',tc:'#5b21b6',span:2},
+      {l:'F2',bg:'#f5f3ff',tc:'#5b21b6',span:2},
+      {l:'Final',bg:'#f5f3ff',tc:'#5b21b6',span:2},
+      {l:'In Stages (≥6)',bg:'#fdf4ff',tc:'#7e22ce',span:2}
     ];
-    pairCols.forEach(function(c){
-      H+='<th colspan="2" style="padding:4px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:'+c.tc+';background:'+c.bg+';white-space:nowrap;">'+c.l+'</th>';
+    grpCols.forEach(function(c){
+      H+='<th colspan="2" style="padding:4px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:'+c.tc+';background:'+c.bg+';">'+c.l+'</th>';
     });
-    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#9a3412;background:#fff7ed;white-space:nowrap;">Target Met</th>';
-    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#065f46;background:#ecfdf5;">Confidence</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#9a3412;background:#fff7ed;white-space:nowrap;">Target<br>Met</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#065f46;background:#ecfdf5;">Confidence</th>';
     H+='</tr>';
-    /* Sub-header: Today / ± labels */
+    /* Today / +/− sub-header */
     H+='<tr style="background:#fafaf8;">';
-    H+='<th style="border-bottom:1px solid #e4e2da;"></th><th style="border-bottom:1px solid #e4e2da;"></th><th style="border-bottom:1px solid #e4e2da;"></th>';
-    pairCols.forEach(function(c){
-      H+='<th style="padding:2px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#888;background:'+c.bg+';">Today</th>';
-      H+='<th style="padding:2px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#aaa;background:'+c.bg+';">+/−</th>';
+    grpCols.forEach(function(c){
+      H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#888;background:'+c.bg+';">Today</th>';
+      H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#aaa;background:'+c.bg+';">+/−</th>';
     });
-    H+='<th style="border-bottom:1px solid #e4e2da;background:#fff7ed;"></th>';
-    H+='<th style="border-bottom:1px solid #e4e2da;background:#ecfdf5;"></th>';
     H+='</tr>';
     H+='</thead><tbody>';
 
-    /* Data rows */
     var scrSum=0,assSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
+    var scrSumP=0,assSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
+
     rows.forEach(function(r){
-      var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv),stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
+      var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
+      var stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
       scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
+
+      var prev=getPrev(r);
+      if(prev){
+        scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);
+        iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);
+        stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv)+n(prev.assessment));
+      }
+
       var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
-      var drV=parseInt(r.daysRemaining)||0;var drS=drV<0?'color:#dc2626;font-weight:600':drV>0&&drV<4?'color:#d97706;font-weight:600':'';
+      var drV=parseInt(r.daysRemaining)||0;
+      var drStyle=drV<0?'color:#dc2626;font-weight:700':drV>0&&drV<=5?'color:#d97706;font-weight:600':'';
+
+      var assDisp=(r.assessment||'').toLowerCase()==='na'||!r.assessment?'N/A':dv(assV);
+      var f2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(iv2V);
+
       H+='<tr style="border-bottom:1px solid #f0efeb;">';
+      /* Role + location + date range */
       H+='<td style="padding:6px 8px;font-weight:500;">';
       H+=escH(r.roleTitle||'—');
       if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
       if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
       H+='</td>';
       H+='<td style="padding:6px 8px;white-space:nowrap;">'+pBadge(r.priority)+'</td>';
-      H+='<td style="padding:6px 8px;text-align:center;'+drS+'font-size:11px;">'+escH(dv(r.daysRemaining))+'</td>';
+      H+='<td style="padding:6px 8px;text-align:center;'+drStyle+'font-size:11px;">'+(drV?drV+'d':'—')+'</td>';
       /* Screened */
-      H+='<td style="padding:6px 8px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#f9fff9;font-size:10px;">'+dc(r.screenedDelta||0)+'</td>';
+      H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';
+      H+=dc(deltaVal(scrV,prev,'screenedToday'));
       /* Assessment */
-      var iv2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(assV);
-      H+='<td style="padding:6px 8px;text-align:center;background:#f9fff9;">'+iv2disp+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#f9fff9;font-size:10px;">'+dc(0)+'</td>';
+      H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+assDisp+'</td>';
+      H+=dc(prev&&assDisp!=='N/A'?deltaVal(assV,prev,'assessment'):null);
       /* F1 */
-      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+dv(iv1V)+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(iv1V)+'</td>';
+      H+=dc(deltaVal(iv1V,prev,'iv1'));
       /* F2 */
-      var f2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(iv2V);
-      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+f2disp+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+f2disp+'</td>';
+      H+=dc(prev&&f2disp!=='N/A'?deltaVal(iv2V,prev,'iv2'):null);
       /* Final */
-      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+dv(finV)+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(finV)+'</td>';
+      H+=dc(deltaVal(finV,prev,'finalIv'));
       /* In Stages */
-      H+='<td style="padding:6px 8px;text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+dv(stgV)+'</td>';
-      H+='<td style="padding:6px 6px;text-align:center;background:#fdf8ff;font-size:10px;">'+dc(0)+'</td>';
-      /* Met */
+      H+='<td style="padding:6px 7px;text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+dv(stgV)+'</td>';
+      H+=dc(deltaVal(stgV,prev,'totalInStages'));
+      /* Target Met */
       H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;">'+metBadge(r.stageTargetMet)+'</td>';
       /* Confidence */
       H+='<td style="padding:6px 8px;text-align:center;background:#ecfdf5;">'+confBadge(r.confidence)+'</td>';
@@ -939,67 +1194,96 @@ function genReport(){
 
     /* Totals row */
     H+='<tr style="background:#f5f4f0;font-weight:700;border-top:2px solid #e4e2da;">';
-    H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;">Total · '+escH(hm)+'</td>';
-    H+='<td style="padding:5px 8px;text-align:center;">'+scrSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
-    H+='<td style="padding:5px 8px;text-align:center;">'+assSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
-    H+='<td style="padding:5px 8px;text-align:center;">'+iv1Sum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
-    H+='<td style="padding:5px 8px;text-align:center;">'+iv2Sum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
-    H+='<td style="padding:5px 8px;text-align:center;">'+finSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
-    H+='<td style="padding:5px 8px;text-align:center;color:#7e22ce;">'+stgSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;font-style:italic;">Total · '+escH(hm)+'</td>';
+    H+='<td style="padding:5px 7px;text-align:center;">'+scrSum+'</td>'+dc(prevRecord?scrSum-scrSumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;">'+assSum+'</td>'+dc(prevRecord?assSum-assSumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;">'+iv1Sum+'</td>'+dc(prevRecord?iv1Sum-iv1SumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;">'+iv2Sum+'</td>'+dc(prevRecord?iv2Sum-iv2SumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;">'+finSum+'</td>'+dc(prevRecord?finSum-finSumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;color:#7e22ce;">'+stgSum+'</td>'+dc(prevRecord?stgSum-stgSumP:null);
     H+='<td></td><td></td></tr>';
     H+='</tbody></table></div>';
   });
 
-  /* ── SOURCING ACTIVITY — HIGH PRIORITY ── */
+  /* ══ SOURCING ACTIVITY — HIGH PRIORITY ══ */
   if(highRows.length){
-    H+='<div style="margin-top:2px;border-top:2px solid #e4e2da;">';
-    H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">';
-    H+='Sourcing Activity · High Priority Roles · '+escH(P.member.toUpperCase())+'</div>';
+    H+='<div style="border-top:2px solid #e4e2da;">';
+    H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Sourcing Activity · High Priority Roles · '+escH(P.member.toUpperCase())+'</div>';
     H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
     H+='<thead><tr style="background:#f5f4f0;">';
     H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Role</th>';
     H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">HM</th>';
     H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Location</th>';
     H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#db2777;">Today</th>';
+    H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">vs '+escH(yesterdayShort)+'</th>';
     H+='</tr></thead><tbody>';
     highRows.forEach(function(r){
-      var src=dv(r.sourcedToday);
+      var srcV=n(r.sourcedToday);
+      var prev=getPrev(r);
+      var srcDelta=prev?srcV-n(prev.sourcedToday):null;
       H+='<tr style="border-bottom:1px solid #f0efeb;">';
       H+='<td style="padding:6px 10px;font-weight:500;">'+escH(r.roleTitle||'—')+'</td>';
       H+='<td style="padding:6px 10px;color:#555;">'+escH(r.hm||'—')+'</td>';
       H+='<td style="padding:6px 10px;color:#555;">'+escH(r.location||'—')+'</td>';
-      H+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#db2777;">'+src+'</td>';
+      H+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#db2777;">'+(srcV||'—')+'</td>';
+      H+=dc(srcDelta);
       H+='</tr>';
     });
     H+='</tbody></table></div></div>';
   }
 
-  /* ── FUNNEL DEPTH ── */
-  H+='<div style="border-top:2px solid #e4e2da;display:grid;grid-template-columns:1fr;">';
-  H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Funnel Depth · Today · All Roles Combined</div>';
-  H+='<div style="padding:16px 20px;">';
-  var funnelRows=[
-    {l:'Screened today',v:snap.screenedToday},
-    {l:'Assessment',v:snap.assessment},
-    {l:'Interview 1 (F1)',v:snap.iv1},
-    {l:'Interview 2 (F2)',v:snap.iv2},
-    {l:'Final interview',v:snap.finalIv},
-    {l:'Total in stages',v:snap.totalInStages,bold:true}
+  /* ══ FUNNEL DEPTH — TWO BLOCKS: TODAY + YESTERDAY ══ */
+  var prevSnapF=prevRecord&&prevRecord.snap?prevRecord.snap:null;
+  var fCols=[
+    {l:'Screened today', tk:'screenedToday', sv:snap.screenedToday, pv:prevSnapF?prevSnapF.screenedToday:null},
+    {l:'Assessment',     tk:'assessment',    sv:snap.assessment,    pv:prevSnapF?prevSnapF.assessment:null},
+    {l:'Interview 1 (F1)',tk:'iv1',          sv:snap.iv1,           pv:prevSnapF?prevSnapF.iv1:null},
+    {l:'Interview 2 (F2)',tk:'iv2',          sv:snap.iv2,           pv:prevSnapF?prevSnapF.iv2:null},
+    {l:'Final interview', tk:'finalIv',      sv:snap.finalIv,       pv:prevSnapF?prevSnapF.finalIv:null},
+    {l:'Total in stages', tk:'total',        sv:snap.totalInStages, pv:prevSnapF?prevSnapF.totalInStages:null, bold:true}
   ];
-  var maxV=Math.max.apply(null,funnelRows.map(function(f){return f.v;}));
-  funnelRows.forEach(function(f){
-    var pct=maxV>0?Math.round(f.v/maxV*100):0;
-    H+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
-    H+='<div style="min-width:160px;font-size:12px;'+(f.bold?'font-weight:700;color:#1a1a18;':'color:#555;')+'">'+escH(f.l)+'</div>';
-    H+='<div style="flex:1;background:#f0efeb;border-radius:4px;height:18px;overflow:hidden;">';
-    H+='<div style="background:'+(f.bold?col:'#94a3b8')+';height:100%;width:'+pct+'%;border-radius:4px;transition:width .3s;"></div></div>';
-    H+='<div style="min-width:36px;text-align:right;font-size:13px;font-weight:'+(f.bold?'800':'600')+';color:'+(f.bold?col:'#1a1a18')+';">'+f.v+'</div>';
+  var maxFV=Math.max.apply(null,fCols.map(function(f){return Math.max(f.sv,f.pv||0);}));if(!maxFV)maxFV=1;
+
+  H+='<div style="border-top:2px solid #e4e2da;">';
+  H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Funnel Depth · Today vs Yesterday · All Roles Combined</div>';
+  H+='<div style="display:grid;grid-template-columns:1fr'+(prevSnapF?' 1fr':'')+';">';
+
+  /* TODAY block */
+  H+='<div style="padding:16px 20px;border-right:'+(prevSnapF?'1px solid #e4e2da':'none')+';">';
+  H+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:12px;letter-spacing:.05em;">Today · '+escH(reportDateShort)+'</div>';
+  fCols.forEach(function(f){
+    var pct=Math.round(f.sv/maxFV*100);
+    var d=f.pv!==null?f.sv-f.pv:null;
+    H+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">';
+    H+='<div style="min-width:145px;font-size:12px;'+(f.bold?'font-weight:700;color:#1a1a18;':'color:#555;')+'">'+escH(f.l)+'</div>';
+    H+='<div style="flex:1;background:#f0efeb;border-radius:4px;height:16px;overflow:hidden;">';
+    H+='<div style="background:'+(f.bold?col:'#94a3b8')+';height:100%;width:'+pct+'%;border-radius:4px;"></div></div>';
+    H+='<div style="min-width:28px;text-align:right;font-size:13px;font-weight:'+(f.bold?'800':'600')+';color:'+(f.bold?col:'#1a1a18')+';">'+f.sv+'</div>';
+    H+='<div style="min-width:32px;text-align:right;font-size:11px;">'+dcInline(d)+'</div>';
     H+='</div>';
   });
+  H+='</div>';
+
+  /* YESTERDAY block — only if we have prev data */
+  if(prevSnapF){
+    H+='<div style="padding:16px 20px;background:#fafaf8;">';
+    H+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:12px;letter-spacing:.05em;">Yesterday · '+escH(yesterdayShort)+'</div>';
+    fCols.forEach(function(f){
+      var pct=f.pv!==null?Math.round(f.pv/maxFV*100):0;
+      H+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">';
+      H+='<div style="min-width:145px;font-size:12px;'+(f.bold?'font-weight:700;color:#1a1a18;':'color:#555;')+'">'+escH(f.l)+'</div>';
+      H+='<div style="flex:1;background:#f0efeb;border-radius:4px;height:16px;overflow:hidden;">';
+      H+='<div style="background:#cbd5e1;height:100%;width:'+pct+'%;border-radius:4px;"></div></div>';
+      H+='<div style="min-width:28px;text-align:right;font-size:13px;font-weight:'+(f.bold?'800':'600')+';color:#888;">'+((f.pv!==null)?f.pv:'—')+'</div>';
+      H+='<div style="min-width:32px;"></div>';
+      H+='</div>';
+    });
+    H+='</div>';
+  }
   H+='</div></div>';
 
-  /* ── FOOTER ── */
-  H+='<div style="background:#f5f4f0;border-top:1px solid #e4e2da;padding:8px 16px;display:flex;justify-content:space-between;">';
+  /* ══ FOOTER ══ */
+  H+='<div style="background:#f5f4f0;border-top:1px solid #e4e2da;padding:8px 18px;display:flex;justify-content:space-between;">';
   H+='<span style="font-size:10px;color:#888;">ManifestGlobal Talent Acquisition · Daily Report to Department HOD</span>';
   H+='<span style="font-size:10px;color:#888;">'+escH(P.member)+' · '+escH(reportDateFmt)+'</span></div>';
   H+='</div>';
@@ -1015,7 +1299,7 @@ function saveRecord(){
   var rec={date:date,member:P.member,roleType:P.roleType,dept:P.dept,weekKey:wkKey(date),savedAt:new Date().toISOString(),snap:computeSnap(P.rows),rows:P.rows.slice()};
   all.push(rec);all.sort(function(a,b){return a.date>b.date?1:-1;});ss(all);
   var m=lm();m.lastSaved=new Date().toISOString();sm(m);
-  fillWeekSels();fillMbSels();fillDateSels();renderArchive();updateSbLast();
+  fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();updateSbLast();
   toast('✓ Saved: '+date+' · '+P.member);
 }
 function updateSbLast(){var all=ls(),el=document.getElementById('sb-last');if(!el)return;if(all.length){var l=all[all.length-1];el.textContent='Last: '+l.date+' ('+l.member+')';}else el.textContent='No records yet';}
@@ -1031,12 +1315,66 @@ function fillMbSels(){
   ['arc-mb'].forEach(function(id){var s=document.getElementById(id);if(s)s.innerHTML=base+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');});
 }
 function fillDateSels(){
-  var dates=ls().map(function(r){return r.date;}).sort().reverse();
+  var all=ls();
+  var dates=[...new Set(all.map(function(r){return r.date;}))].sort().reverse();
   ['cmp-from','cmp-to'].forEach(function(id,i){
     var s=document.getElementById(id);if(!s)return;
+    var prev=s.value;
     s.innerHTML='<option value="">— select</option>'+dates.map(function(d){return'<option value="'+escH(d)+'">'+escH(fmtShort(d))+' — '+escH(fmtLong(d))+'</option>';}).join('');
-    if(dates[i])s.value=dates[i];
+    if(prev&&dates.indexOf(prev)>-1)s.value=prev;
+    else if(dates[i])s.value=dates[i];
   });
+  /* Recruiter selector */
+  var recSel=document.getElementById('cmp-rec');
+  if(recSel){
+    var recs=[...new Set(all.map(function(r){return r.member;}))].filter(Boolean).sort();
+    var prevR=recSel.value;
+    recSel.innerHTML='<option value="">— all recruiters</option>'+recs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');
+    if(prevR&&recs.indexOf(prevR)>-1)recSel.value=prevR;
+  }
+  /* Department selector */
+  var depSel=document.getElementById('cmp-dep');
+  if(depSel){
+    var deps=[...new Set(all.map(function(r){return r.dept||'';}).filter(Boolean))].sort();
+    var prevD=depSel.value;
+    depSel.innerHTML='<option value="">— all departments</option>'+deps.map(function(d){return'<option value="'+escH(d)+'">'+escH(d)+'</option>';}).join('');
+    if(prevD&&deps.indexOf(prevD)>-1)depSel.value=prevD;
+  }
+}
+
+/* ════ COMPARE SELECTORS ════ */
+function fillCmpMember(){
+  var s=document.getElementById('cmp-member');if(!s)return;
+  var members={};ls().forEach(function(r){if(r.member)members[r.member]=1;});
+  var mbs=Object.keys(members).sort();
+  var prev=s.value;
+  s.innerHTML='<option value="">— auto (same recruiter)</option>'+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');
+  if(prev&&members[prev])s.value=prev;
+  fillCmpDepts();
+}
+function fillCmpDepts(){
+  var s=document.getElementById('cmp-dept');if(!s)return;
+  var member=(document.getElementById('cmp-member')||{value:''}).value||P.member;
+  var depts={};
+  ls().filter(function(r){return!member||r.member===member;}).forEach(function(r){if(r.dept)depts[r.dept]=1;});
+  var ds=Object.keys(depts).sort();
+  var prev=s.value;
+  s.innerHTML='<option value="">— all departments</option>'+ds.map(function(d){return'<option value="'+escH(d)+'">'+escH(d)+'</option>';}).join('');
+  if(prev&&depts[prev])s.value=prev;
+  fillCmpDates();
+}
+function fillCmpDates(){
+  var s=document.getElementById('cmp-date-override');if(!s)return;
+  var member=(document.getElementById('cmp-member')||{value:''}).value||P.member;
+  var dept=(document.getElementById('cmp-dept')||{value:''}).value||'';
+  var dates=ls().filter(function(r){
+    if(member&&r.member!==member)return false;
+    if(dept&&r.dept&&r.dept!==dept)return false;
+    return true;
+  }).map(function(r){return r.date;}).sort().reverse();
+  var prev=s.value;
+  s.innerHTML='<option value="">— yesterday (auto)</option>'+dates.map(function(d){return'<option value="'+escH(d)+'">'+escH(fmtShort(d))+' — '+escH(fmtLong(d))+'</option>';}).join('');
+  if(prev&&dates.indexOf(prev)>-1)s.value=prev;
 }
 
 /* ════ ARCHIVE ════ */
@@ -1047,9 +1385,12 @@ function renderArchive(){
   var fil=all.filter(function(r){return(mf==='all'||r.member===mf)&&(!q||(r.date+' '+r.member).toLowerCase().indexOf(q)>-1);}).reverse();
   var tb=document.getElementById('arc-body');if(!tb)return;
   if(!fil.length){tb.innerHTML='<tr><td colspan="17"><div class="empty">No records.</div></td></tr>';return;}
-  tb.innerHTML=fil.map(function(r){
+  var arcIndex=[];
+  tb.innerHTML=fil.map(function(r,i){
+    arcIndex.push(r);
     var s=r.snap||{};
-    return'<tr><td style="font-weight:500;white-space:nowrap;">'+escH(r.date)+'</td>'
+    return'<tr>'
+    +'<td style="font-weight:500;white-space:nowrap;">'+escH(r.date)+'</td>'
     +'<td><span style="color:'+mCol(r.member)+';font-weight:600;">'+escH(r.member)+'</span></td>'
     +'<td style="font-size:11px;color:var(--text3);">'+escH(r.dept||'—')+'</td>'
     +'<td><span class="badge bb">'+escH(r.roleType||'rec')+'</span></td>'
@@ -1058,8 +1399,13 @@ function renderArchive(){
     +'<td style="text-align:center;font-weight:700;color:#7e22ce;">'+s.totalInStages+'</td>'
     +'<td><span class="badge bg">'+s.onTrack+'</span></td><td><span class="badge ba">'+s.uncertain+'</span></td><td><span class="badge br">'+s.delayed+'</span></td>'
     +'<td><span class="badge bp">'+(s.stageMet||0)+'</span></td><td>'+s.totalRoles+'</td>'
-    +'<td style="white-space:nowrap;"><button class="btn btn-sm" onclick="loadRec(\''+escH(r.date)+'\',\''+escH(r.member)+'\')">Load</button> <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);" onclick="delRec(\''+escH(r.date)+'\',\''+escH(r.member)+'\')">Del</button></td></tr>';
+    +'<td style="white-space:nowrap;">'
+    +'<button class="btn btn-sm" onclick="arcLoad('+i+')">Load</button> '
+    +'<button class="btn btn-sm" style="color:var(--red);border-color:var(--red);" onclick="arcDel('+i+')">Del</button>'
+    +'</td></tr>';
   }).join('');
+  /* store index for button callbacks */
+  window._arcIndex=arcIndex;
 }
 function loadRec(date,member){
   var rec=ls().find(function(r){return r.date===date&&r.member===member;});if(!rec){toast('Not found.');return;}
@@ -1070,22 +1416,757 @@ function loadRec(date,member){
   nav('report');genReport();toast('Loaded: '+date+' · '+member);
 }
 function delRec(date,member){if(!confirm('Delete?'))return;ss(ls().filter(function(r){return!(r.date===date&&r.member===member);}));fillWeekSels();fillMbSels();renderArchive();toast('Deleted.');}
+function arcLoad(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}loadRec(r.date,r.member);}
+function arcDel(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}delRec(r.date,r.member);}
+
+/* ════ ACCUMULATED REPORT ════ */
+
+function fillAccumDates(){
+  var s=document.getElementById('accum-date');if(!s)return;
+  var dates=[...new Set(ls().map(function(r){return r.date;}))].sort().reverse();
+  var prev=s.value;
+  s.innerHTML='<option value="">— select a date</option>'+dates.map(function(d){
+    return'<option value="'+escH(d)+'">'+escH(fmtLong(d))+'</option>';
+  }).join('');
+  if(prev&&dates.indexOf(prev)>-1)s.value=prev;
+  else if(dates[0])s.value=dates[0];
+}
+
+function genAccum(){
+  var date=(document.getElementById('accum-date')||{value:''}).value;
+  var wrap=document.getElementById('accum-wrap');
+  var found=document.getElementById('accum-found');
+  if(!date){wrap.innerHTML='<div class="empty">Select a date above to build the accumulated team report.</div>';if(found)found.textContent='';return;}
+
+  /* Get all records for this date across all recruiters */
+  var dayRecs=ls().filter(function(r){return r.date===date&&r.rows&&r.rows.length;});
+  if(!dayRecs.length){
+    wrap.innerHTML='<div class="empty">No saved records found for '+escH(fmtLong(date))+'. Make sure each recruiter has saved their snapshot for this date.</div>';
+    if(found)found.textContent='No records found.';
+    return;
+  }
+  if(found)found.textContent=dayRecs.length+' recruiter record'+(dayRecs.length!==1?'s':'')+' found for this date.';
+
+  /* Get previous day records for delta comparison */
+  function getYesterdayStr(ds){var d=parseDateStr(ds);if(!d)return'';d.setDate(d.getDate()-1);return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();}
+  var prevDate=getYesterdayStr(date);
+  var prevRecs=prevDate?ls().filter(function(r){return r.date===prevDate&&r.rows&&r.rows.length;}):[];
+
+  /* Aggregate snap across all records */
+  function aggSnap(recs){
+    var s={totalRoles:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,priHigh:0,priMid:0,priLow:0};
+    recs.forEach(function(r){
+      var sn=r.snap||computeSnap(r.rows||[]);
+      Object.keys(s).forEach(function(k){s[k]+=(sn[k]||0);});
+    });
+    return s;
+  }
+  var teamSnap=aggSnap(dayRecs);
+  var prevSnap=prevRecs.length?aggSnap(prevRecs):null;
+
+  var dateFmt=fmtLong(date);
+  var dateShort=fmtShort(date);
+  var prevShort=prevDate?fmtShort(prevDate):'';
+
+  function tileArrow(today,prev){
+    if(prev===null||prev===undefined)return'';
+    var d=today-prev;
+    if(d===0)return'<div style="font-size:10px;color:#888;margin-top:2px;">No change vs '+escH(prevShort)+'</div>';
+    var arr=d>0?'↑':'↓';var c=d>0?'#16a34a':'#dc2626';
+    return'<div style="font-size:10px;font-weight:700;color:'+c+';margin-top:2px;">'+arr+' '+(d>0?'+':'')+d+' vs '+escH(prevShort)+'</div>';
+  }
+
+  var H='<div id="accum-report-card" style="background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;border:1px solid #e4e2da;border-radius:12px;overflow:hidden;">';
+
+  /* ── HEADER ── */
+  H+='<div style="background:#1a1a18;color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:flex-start;">';
+  H+='<div>';
+  H+='<div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.5;margin-bottom:3px;">Daily Talent Acquisition Report — All Recruiters</div>';
+  H+='<div style="font-size:22px;font-weight:800;letter-spacing:-.02em;">ManifestGlobal TA Team</div>';
+  H+='<div style="font-size:13px;opacity:.7;margin-top:2px;">'+escH(dateFmt)+'</div>';
+  if(prevSnap)H+='<div style="font-size:11px;opacity:.5;margin-top:1px;">Compared to '+escH(prevShort)+'</div>';
+  H+='</div>';
+  H+='<div style="text-align:right;font-size:12px;opacity:.6;line-height:2;">';
+  H+='<div style="font-weight:700;">TEAM OVERVIEW · '+escH(dateShort.toUpperCase())+'</div>';
+  H+='<div style="font-size:11px;">'+dayRecs.length+' recruiter'+(dayRecs.length!==1?'s':'')+' · '+teamSnap.totalRoles+' open roles</div>';
+  H+='</div></div>';
+
+  /* ── TEAM OVERVIEW TILES ── */
+  H+='<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid #e4e2da;">';
+  /* Tile 1 — Open roles */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.totalRoles+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Open roles</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+teamSnap.totalRoles+' HC across team</div>';
+  H+='</div>';
+  /* Tile 2 — Screened */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.screenedToday+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
+  H+=tileArrow(teamSnap.screenedToday,prevSnap?prevSnap.screenedToday:null);
+  H+='</div>';
+  /* Tile 3 — Total in stages */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.totalInStages+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Total in stages</div>';
+  H+=tileArrow(teamSnap.totalInStages,prevSnap?prevSnap.totalInStages:null);
+  H+='</div>';
+  /* Tile 4 — Stage met */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.stageMet+' / '+teamSnap.totalRoles+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Stage target met</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+Math.round(teamSnap.stageMet/Math.max(teamSnap.totalRoles,1)*100)+'% of roles</div>';
+  H+='</div>';
+  /* Tile 5 — Confidence split */
+  H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Confidence split</div>';
+  H+='<div style="display:flex;gap:10px;align-items:flex-end;">';
+  H+='<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#16a34a;">'+teamSnap.onTrack+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">On track</div></div>';
+  H+='<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#d97706;">'+teamSnap.uncertain+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Uncertain</div></div>';
+  H+='<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#dc2626;">'+teamSnap.delayed+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Delayed</div></div>';
+  H+='</div></div>';
+  /* Tile 6 — Priority split */
+  H+='<div style="padding:14px 10px;background:#f5f4f0;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Priority split</div>';
+  H+='<div><span class="badge bh" style="margin-bottom:4px;display:inline-block;">High: '+teamSnap.priHigh+'</span><br>';
+  H+='<span class="badge bm" style="margin-bottom:4px;display:inline-block;">Mid: '+teamSnap.priMid+'</span><br>';
+  H+='<span class="badge bl" style="display:inline-block;">Low: '+teamSnap.priLow+'</span></div></div>';
+  H+='</div>';
+
+  /* ── CONFIDENCE KEY ── */
+  H+='<div style="background:#fffbeb;border-bottom:1px solid #e4e2da;padding:8px 16px;font-size:10px;color:#92400e;line-height:1.7;">';
+  H+='<strong>CONFIDENCE KEY</strong>&nbsp; ';
+  H+='<strong style="color:#16a34a;">On track</strong> — ≥6 in stages or ≥2 at Final; pace consistent with offer date&nbsp;&nbsp;';
+  H+='<strong style="color:#d97706;">Uncertain</strong> — pipeline building but depth or pace below needed&nbsp;&nbsp;';
+  H+='<strong style="color:#dc2626;">Delayed</strong> — insufficient depth/activity; will not meet target without intervention';
+  H+='</div>';
+
+  /* ── PER-RECRUITER SECTIONS ── */
+  dayRecs.forEach(function(rec){
+    var member=rec.member;
+    var col=mCol(member);
+    var initials=member.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    var recSnap=rec.snap||computeSnap(rec.rows||[]);
+    var rows=rec.rows||[];
+
+    /* Find this recruiter's prev record */
+    var prevRec=prevRecs.filter(function(r){return r.member===member;})[0]||null;
+    var prevRecSnap=prevRec&&prevRec.snap?prevRec.snap:null;
+
+    /* Build prev row map for deltas */
+    var prevRowMap={};
+    if(prevRec&&prevRec.rows){
+      prevRec.rows.forEach(function(r){
+        var k=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+        if(k&&!prevRowMap[k])prevRowMap[k]=r;
+      });
+    }
+    function getPrevRow(r){
+      var k=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+      return prevRowMap[k]||null;
+    }
+
+    /* Group rows by HM */
+    var hmOrder=[],hmMap={};
+    rows.forEach(function(r){var hm=r.hm||'Unknown';if(!hmMap[hm]){hmMap[hm]=[];hmOrder.push(hm);}hmMap[hm].push(r);});
+
+    /* Recruiter header bar */
+    H+='<div style="background:#1a1a18;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;border-top:3px solid '+col+';">';
+    H+='<div style="width:32px;height:32px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">'+escH(initials)+'</div>';
+    H+='<div>';
+    H+='<div style="font-size:14px;font-weight:700;">'+escH(member)+'</div>';
+    H+='<div style="font-size:11px;opacity:.55;">'+rows.length+' role'+(rows.length!==1?'s':'')+' · '+recSnap.stageMet+' of '+rows.length+' stage target met'+(rec.dept?' · '+escH(rec.dept):'')+'</div>';
+    H+='</div>';
+    H+='<div style="margin-left:auto;display:flex;gap:14px;font-size:12px;">';
+    if(recSnap.onTrack)H+='<span style="color:#4ade80;">'+recSnap.onTrack+' on track</span>';
+    if(recSnap.uncertain)H+='<span style="color:#fbbf24;">'+recSnap.uncertain+' uncertain</span>';
+    if(recSnap.delayed)H+='<span style="color:#f87171;">'+recSnap.delayed+' delayed</span>';
+    /* Snapshot delta vs prev */
+    if(prevRecSnap){
+      var stgD=recSnap.totalInStages-prevRecSnap.totalInStages;
+      if(stgD!==0)H+='<span style="color:'+(stgD>0?'#4ade80':'#f87171')+';font-size:11px;">In Stages '+(stgD>0?'+':'')+stgD+' vs '+escH(prevShort)+'</span>';
+    }
+    H+='</div></div>';
+
+    /* Role table — per HM, same structure as daily report */
+    hmOrder.forEach(function(hm){
+      var hmRows=hmMap[hm];
+      var hmSnap={met:0,onTrack:0,uncertain:0,delayed:0};
+      hmRows.forEach(function(r){
+        var met=(r.stageTargetMet||'').toLowerCase();
+        if(met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true')hmSnap.met++;
+        var conf=(r.confidence||'').toLowerCase();
+        if(conf.indexOf('track')>-1)hmSnap.onTrack++;else if(conf.indexOf('uncertain')>-1)hmSnap.uncertain++;else if(conf.indexOf('delay')>-1)hmSnap.delayed++;
+      });
+      var hmInitials=hm.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+      /* HM sub-header */
+      H+='<div style="background:#252522;color:#fff;padding:8px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid #333;">';
+      H+='<div style="width:26px;height:26px;border-radius:50%;background:'+col+';opacity:.7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">'+escH(hmInitials)+'</div>';
+      H+='<div style="font-size:13px;font-weight:600;">'+escH(hm)+'</div>';
+      H+='<div style="font-size:11px;opacity:.5;margin-left:6px;">'+hmRows.length+' role'+(hmRows.length!==1?'s':'')+' · '+hmSnap.met+' met</div>';
+      H+='<div style="margin-left:auto;display:flex;gap:10px;font-size:11px;">';
+      if(hmSnap.onTrack)H+='<span style="color:#4ade80;">'+hmSnap.onTrack+' on track</span>';
+      if(hmSnap.uncertain)H+='<span style="color:#fbbf24;">'+hmSnap.uncertain+' uncertain</span>';
+      if(hmSnap.delayed)H+='<span style="color:#f87171;">'+hmSnap.delayed+' delayed</span>';
+      H+='</div></div>';
+
+      /* Role table */
+      H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+      H+='<thead>';
+      H+='<tr style="background:#f5f4f0;">';
+      H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;min-width:155px;border-right:1px solid #e4e2da;">Role</th>';
+      H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;border-right:1px solid #e4e2da;">Pri</th>';
+      H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;border-right:1px solid #e4e2da;">Days</th>';
+      var pairCols=[
+        {l:'Screened',   bg:'#f0fdf4',tc:'#166534', f:'screenedToday'},
+        {l:'Assessment', bg:'#f0fdf4',tc:'#166534', f:'assessment'},
+        {l:'F1',         bg:'#f5f3ff',tc:'#5b21b6', f:'iv1'},
+        {l:'F2',         bg:'#f5f3ff',tc:'#5b21b6', f:'iv2'},
+        {l:'Final',      bg:'#f5f3ff',tc:'#5b21b6', f:'finalIv'},
+        {l:'In Stages',  bg:'#fdf4ff',tc:'#7e22ce', f:'totalInStages',bold:true}
+      ];
+      pairCols.forEach(function(c,i){
+        H+='<th colspan="2" style="padding:4px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:'+c.tc+';background:'+c.bg+';border-right:'+(i<pairCols.length-1?'1px solid #e4e2da':'none')+';">'+escH(c.l)+'</th>';
+      });
+      H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#9a3412;background:#fff7ed;border-left:1px solid #e4e2da;">Met</th>';
+      H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#065f46;background:#ecfdf5;">Confidence</th>';
+      H+='</tr>';
+      H+='<tr style="background:#fafaf8;">';
+      pairCols.forEach(function(c,i){
+        H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#888;background:'+c.bg+';">Today</th>';
+        H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#aaa;background:'+c.bg+';border-right:'+(i<pairCols.length-1?'1px solid #e4e2da':'none')+';">+/−</th>';
+      });
+      H+='</tr></thead><tbody>';
+
+      var scrSum=0,assSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
+      var scrSumP=0,assSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
+
+      hmRows.forEach(function(r){
+        var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
+        var stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
+        scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
+        var prev=getPrevRow(r);
+        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv)+n(prev.assessment));}
+        var drV=parseInt(r.daysRemaining)||0;
+        var drStyle=drV<0?'color:#dc2626;font-weight:700':drV>0&&drV<=5?'color:#d97706;font-weight:600':'';
+        var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
+        var assDisp=(r.assessment||'').toLowerCase()==='na'||!r.assessment?'N/A':dv(assV);
+        var f2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(iv2V);
+
+        /* delta helper */
+        function dCell(today,prevRow,field){
+          if(!prevRow)return'<td style="text-align:center;color:#aaa;font-size:10px;">—</td>';
+          var d=n(today)-n(prevRow[field]||0);
+          if(d===0)return'<td style="text-align:center;color:#aaa;font-size:10px;">—</td>';
+          return'<td style="text-align:center;font-weight:700;font-size:10px;color:'+(d>0?'#16a34a':'#dc2626')+';">'+(d>0?'+':'')+d+'</td>';
+        }
+
+        H+='<tr style="border-bottom:1px solid #f0efeb;">';
+        H+='<td style="padding:6px 8px;font-weight:500;border-right:1px solid #e4e2da;">';
+        H+=escH(r.roleTitle||'—');
+        if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
+        if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
+        H+='</td>';
+        H+='<td style="padding:6px 8px;border-right:1px solid #e4e2da;">'+pBadge(r.priority)+'</td>';
+        H+='<td style="padding:6px 8px;text-align:center;'+drStyle+'font-size:11px;border-right:1px solid #e4e2da;">'+(drV?drV+'d':'—')+'</td>';
+        /* Screened */
+        H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';H+=dCell(scrV,prev,'screenedToday');
+        /* Assessment */
+        H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+assDisp+'</td>';H+=dCell(assV,prev,'assessment');
+        /* F1 */
+        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(iv1V)+'</td>';H+=dCell(iv1V,prev,'iv1');
+        /* F2 */
+        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+f2disp+'</td>';H+=dCell(iv2V,prev,'iv2');
+        /* Final */
+        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(finV)+'</td>';H+=dCell(finV,prev,'finalIv');
+        /* In Stages */
+        H+='<td style="padding:6px 7px;text-align:center;background:#fdf8ff;font-weight:800;color:#7e22ce;">'+dv(stgV)+'</td>';H+=dCell(stgV,prev,'totalInStages');
+        /* Met */
+        H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;border-left:1px solid #e4e2da;">'+metBadge(r.stageTargetMet)+'</td>';
+        /* Confidence */
+        H+='<td style="padding:6px 8px;text-align:center;background:#ecfdf5;">'+confBadge(r.confidence)+'</td>';
+        H+='</tr>';
+      });
+
+      /* Totals row */
+      H+='<tr style="background:#f5f4f0;font-weight:700;border-top:2px solid #e4e2da;">';
+      H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;font-style:italic;border-right:1px solid #e4e2da;">Total · '+escH(hm)+'</td>';
+      var totals=[[scrSum,scrSumP,'screenedToday'],[assSum,assSumP,'assessment'],[iv1Sum,iv1SumP,'iv1'],[iv2Sum,iv2SumP,'iv2'],[finSum,finSumP,'finalIv'],[stgSum,stgSumP,'totalInStages']];
+      totals.forEach(function(t,i){
+        var d=prevRec?t[0]-t[1]:null;
+        var dC=d===null?'#aaa':d>0?'#16a34a':d<0?'#dc2626':'#aaa';
+        var dS=d===null?'—':d===0?'—':(d>0?'+':'')+d;
+        var isStg=i===5;
+        var br=i<5?'border-right:1px solid #e4e2da;':'';
+        H+='<td style="padding:5px 7px;text-align:center;background:'+(isStg?'#fdf8ff':'#f9fff9');
+        if(i>=2)H=H.replace('#f9fff9','#faf9ff');
+        H+='"><span style="font-weight:700;color:'+(isStg?'#7e22ce':'#1a1a18')+';">'+t[0]+'</span></td>';
+        H+='<td style="padding:5px 7px;text-align:center;font-size:10px;font-weight:700;color:'+dC+';'+br+'">'+dS+'</td>';
+      });
+      H+='<td style="background:#fff7ed;border-left:1px solid #e4e2da;"></td><td style="background:#ecfdf5;"></td>';
+      H+='</tr>';
+      H+='</tbody></table></div>';
+    });
+
+    /* Sourcing — high priority roles for this recruiter */
+    var highRows=rows.filter(function(r){return(r.priority||'').toLowerCase()==='high';});
+    if(highRows.length){
+      H+='<div style="border-top:1px solid #e4e2da;">';
+      H+='<div style="background:#252522;color:#fff;padding:7px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Sourcing · High Priority · '+escH(member.toUpperCase())+'</div>';
+      H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+      H+='<thead><tr style="background:#f5f4f0;"><th style="padding:5px 10px;border-bottom:1px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Role</th><th style="padding:5px 10px;border-bottom:1px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">HM</th><th style="padding:5px 10px;border-bottom:1px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Location</th><th style="padding:5px 10px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#db2777;">Today</th><th style="padding:5px 10px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">+/−</th></tr></thead><tbody>';
+      highRows.forEach(function(r){
+        var srcV=n(r.sourcedToday);var prev=getPrevRow(r);var d=prev?srcV-n(prev.sourcedToday):null;
+        var dC=d===null?'#aaa':d>0?'#16a34a':d<0?'#dc2626':'#aaa';
+        var dS=d===null?'—':d===0?'—':(d>0?'+':'')+d;
+        H+='<tr style="border-bottom:1px solid #f0efeb;"><td style="padding:5px 10px;font-weight:500;">'+escH(r.roleTitle||'—')+'</td><td style="padding:5px 10px;color:#555;">'+escH(r.hm||'—')+'</td><td style="padding:5px 10px;color:#555;">'+escH(r.location||'—')+'</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:#db2777;">'+(srcV||'—')+'</td><td style="padding:5px 10px;text-align:center;font-weight:700;color:'+dC+';">'+dS+'</td></tr>';
+      });
+      H+='</tbody></table></div></div>';
+    }
+  });
+
+  /* ── FOOTER ── */
+  H+='<div style="background:#f5f4f0;border-top:1px solid #e4e2da;padding:8px 18px;display:flex;justify-content:space-between;">';
+  H+='<span style="font-size:10px;color:#888;">ManifestGlobal Talent Acquisition · Daily Accumulated Report</span>';
+  H+='<span style="font-size:10px;color:#888;">'+escH(dateFmt)+' · '+dayRecs.length+' recruiter'+(dayRecs.length!==1?'s':'')+'</span>';
+  H+='</div></div>';
+
+  wrap.innerHTML=H;
+}
+
+function sendAccumReport(){
+  var date=(document.getElementById('accum-date')||{value:''}).value;
+  if(!date){toast('Select a date first.');return;}
+  var card=document.getElementById('accum-report-card');
+  if(!card){toast('Build the report first.');return;}
+  var st=Array.from(document.querySelectorAll('style')).map(function(s){return s.textContent;}).join('\n');
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TA Accumulated Report — '+date+'</title><style>'+st+'body{padding:20px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+card.outerHTML+'</body></html>';
+  var dayRecs=ls().filter(function(r){return r.date===date;});
+  var payload=JSON.stringify({date:date,member:'TA Team',dept:'All',records:ls(),html:html});
+  toast('Sending…');
+  fetch('http://127.0.0.1:3847/send-report',{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){var m=lm();m.lastEmailSent=new Date().toISOString();sm(m);updateSchedUI();toast('✓ Accumulated report sent to tenille.kok@cialfo.com.sg');}
+      else toast('⚠ Failed: '+d.error);
+    })
+    .catch(function(e){toast('⚠ Server unreachable: '+e.message);});
+}
+
+function printAccum(){
+  var card=document.getElementById('accum-report-card');
+  if(!card){toast('Build the report first.');return;}
+  var w=window.open('','_blank','width=1400,height=900');if(!w){toast('Allow pop-ups.');return;}
+  var st=Array.from(document.querySelectorAll('style')).map(function(s){return s.textContent;}).join('\n');
+  w.document.write('<!DOCTYPE html><html><head><title>TA Accumulated Report</title><style>'+st+'body{padding:20px;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+card.outerHTML+'</body></html>');
+  w.document.close();setTimeout(function(){w.focus();w.print();},500);
+}
 
 /* ════ COMPARE ════ */
 function runCmp(){
-  var f=document.getElementById('cmp-from').value,t=document.getElementById('cmp-to').value;
+  var f=document.getElementById('cmp-from').value;
+  var t=document.getElementById('cmp-to').value;
   if(!f||!t){toast('Select both dates.');return;}
-  var all=ls();var r1=all.find(function(r){return r.date===f;}),r2=all.find(function(r){return r.date===t;});
-  if(!r1||!r2){toast('Record not found.');return;}
-  var s1=r1.snap||{},s2=r2.snap||{};
-  var h='<div class="card"><div class="ct" style="margin-bottom:12px;">Snapshot Delta — <span style="font-weight:400;color:var(--text3);">'+escH(fmtShort(f))+' → '+escH(fmtShort(t))+'</span></div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:8px;">';
-  [{l:'Open Roles',a:s1.totalRoles,b:s2.totalRoles},{l:'Rec. Screen',a:s1.recruiting,b:s2.recruiting},{l:'Screened',a:s1.screenedToday,b:s2.screenedToday},{l:'Sourced',a:s1.sourcedToday,b:s2.sourcedToday},{l:'Calendly',a:s1.calendly,b:s2.calendly},{l:'IV1',a:s1.iv1,b:s2.iv1},{l:'IV2',a:s1.iv2,b:s2.iv2},{l:'Final',a:s1.finalIv,b:s2.finalIv},{l:'Total Stages',a:s1.totalInStages,b:s2.totalInStages}].forEach(function(m){
-    var d=m.b-m.a,cl=d>0?'color:var(--green);':d<0?'color:var(--red);':'color:var(--text3);',ds=d===0?'±0':(d>0?'+':'')+d;
-    h+='<div style="background:var(--bg2);border-radius:8px;padding:11px 10px;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">'+m.l+'</div><div style="font-size:22px;font-weight:700;">'+m.b+'</div><div style="font-size:11px;'+cl+'">'+ds+'</div></div>';
+  if(f===t){toast('Select two different dates.');return;}
+
+  var filterRec=(document.getElementById('cmp-rec')||{value:''}).value||'';
+  var filterDep=(document.getElementById('cmp-dep')||{value:''}).value||'';
+
+  var all=ls();
+
+  /* Get records for each date, applying recruiter/dept filter */
+  function getForDate(date){
+    return all.filter(function(r){
+      if(r.date!==date)return false;
+      if(filterRec&&r.member!==filterRec)return false;
+      if(filterDep&&r.dept&&r.dept!==filterDep)return false;
+      return r.rows&&r.rows.length;
+    });
+  }
+  var recsA=getForDate(f);
+  var recsB=getForDate(t);
+  if(!recsA.length||!recsB.length){toast('No matching records for one or both dates.');return;}
+
+  /* Merge all rows across records for each date */
+  function mergeRows(recs){var rows=[];recs.forEach(function(r){(r.rows||[]).forEach(function(row){var merged=Object.assign({},row);merged._member=r.member;merged._dept=r.dept||'';rows.push(merged);});});return rows;}
+  var rowsA=mergeRows(recsA);
+  var rowsB=mergeRows(recsB);
+
+  /* Aggregate snap for a set of records */
+  function aggSnap(recs){
+    var s={totalRoles:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,recruiting:0};
+    recs.forEach(function(r){var snap=r.snap||computeSnap(r.rows||[]);
+      s.totalRoles+=snap.totalRoles||0;s.screenedToday+=snap.screenedToday||0;s.sourcedToday+=snap.sourcedToday||0;
+      s.calendly+=snap.calendly||0;s.iv1+=snap.iv1||0;s.iv2+=snap.iv2||0;s.finalIv+=snap.finalIv||0;
+      s.assessment+=snap.assessment||0;s.totalInStages+=snap.totalInStages||0;
+      s.onTrack+=snap.onTrack||0;s.uncertain+=snap.uncertain||0;s.delayed+=snap.delayed||0;
+      s.stageMet+=snap.stageMet||0;s.recruiting+=snap.recruiting||0;
+    });
+    return s;
+  }
+  var sA=aggSnap(recsA),sB=aggSnap(recsB);
+
+  var fmtA=fmtLong(f),fmtB=fmtLong(t);
+  var shortA=fmtShort(f),shortB=fmtShort(t);
+  function normKey(r){return(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');}
+
+  var H='';
+
+  /* ══ SECTION HEADER ══ */
+  H+='<div style="background:#1a1a18;color:#fff;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">';
+  H+='<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.5;margin-bottom:2px;">Day-over-Day Comparison</div>';
+  H+='<div style="font-size:16px;font-weight:700;">'+escH(shortA)+' → '+escH(shortB)+'</div></div>';
+  H+='<div style="text-align:right;font-size:12px;opacity:.6;line-height:1.9;">';
+  if(filterRec)H+=escH(filterRec);
+  if(filterDep)H+=(filterRec?' · ':'')+escH(filterDep);
+  if(!filterRec&&!filterDep)H+='All recruiters · All departments';
+  H+='</div></div>';
+
+  /* ══ ① OVERVIEW TILES ══ */
+  var tileData=[
+    {l:'Open roles',      a:sA.totalRoles,    b:sB.totalRoles},
+    {l:'Total in stages', a:sA.totalInStages, b:sB.totalInStages},
+    {l:'Screened',        a:sA.screenedToday, b:sB.screenedToday},
+    {l:'Sourced',         a:sA.sourcedToday,  b:sB.sourcedToday},
+    {l:'On track',        a:sA.onTrack,       b:sB.onTrack,   col:'#16a34a'},
+    {l:'Uncertain',       a:sA.uncertain,     b:sB.uncertain, col:'#d97706'},
+    {l:'Delayed',         a:sA.delayed,       b:sB.delayed,   col:'#dc2626'},
+    {l:'Stage met',       a:sA.stageMet,      b:sB.stageMet}
+  ];
+  H+='<div style="display:grid;grid-template-columns:repeat(8,1fr);border:1px solid #e4e2da;border-top:none;border-bottom:none;background:#fff;">';
+  tileData.forEach(function(tile,i){
+    var d=tile.b-tile.a;
+    var dC=d>0?'#16a34a':d<0?'#dc2626':'#888';
+    var dS=d===0?'±0':(d>0?'+':'')+d;
+    H+='<div style="padding:14px 10px;border-right:'+(i<7?'1px solid #e4e2da':'none')+';border-bottom:1px solid #e4e2da;">';
+    H+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:6px;">'+escH(tile.l)+'</div>';
+    H+='<div style="font-size:22px;font-weight:800;color:'+(tile.col||'#1a1a18')+';line-height:1;">'+tile.b+'</div>';
+    H+='<div style="font-size:11px;margin-top:4px;display:flex;gap:6px;align-items:center;">';
+    H+='<span style="color:#aaa;">'+tile.a+' → '+tile.b+'</span>';
+    H+='<span style="font-weight:700;color:'+dC+';">'+dS+'</span>';
+    H+='</div></div>';
   });
-  h+='</div></div>';
-  document.getElementById('cmp-wrap').innerHTML=h;
+  H+='</div>';
+
+  /* ══ ② PER-RECRUITER BREAKDOWN ══ */
+  var allMembers=[...new Set(recsA.map(function(r){return r.member;}).concat(recsB.map(function(r){return r.member;})))].sort();
+
+  /* Build per-member role maps for role-level lookup */
+  function memberRowMap(recs,member){
+    var map={};
+    recs.filter(function(r){return r.member===member;}).forEach(function(rec){
+      (rec.rows||[]).forEach(function(row){
+        var k=normKey(row);
+        if(k&&!map[k])map[k]=row;
+      });
+    });
+    return map;
+  }
+
+  H+='<div style="background:#fff;border:1px solid #e4e2da;border-top:none;">';
+  H+='<div style="background:#f5f4f0;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;border-bottom:1px solid #e4e2da;">Per-recruiter breakdown</div>';
+
+  allMembers.forEach(function(member){
+    var recA=recsA.filter(function(r){return r.member===member;})[0];
+    var recB=recsB.filter(function(r){return r.member===member;})[0];
+    var sma=recA&&recA.snap?recA.snap:computeSnap((recA||{rows:[]}).rows||[]);
+    var smb=recB&&recB.snap?recB.snap:computeSnap((recB||{rows:[]}).rows||[]);
+    var col=mCol(member);
+    var initials=member.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+
+    /* All roles this member has across either date */
+    var rmA=memberRowMap(recsA,member);
+    var rmB=memberRowMap(recsB,member);
+    var allRoleKeys=[...new Set(Object.keys(rmA).concat(Object.keys(rmB)))];
+    var totalRoles=allRoleKeys.length;
+
+    /* Confidence delta for header badges */
+    function confDelta(snapA,snapB,field){
+      var d=(snapB[field]||0)-(snapA[field]||0);
+      var v=snapB[field]||0;
+      var dStr=d===0?'':d>0?' +'+d:' '+d;
+      return{v:v,d:d,str:v+dStr};
+    }
+    var cdOT=confDelta(sma,smb,'onTrack');
+    var cdUn=confDelta(sma,smb,'uncertain');
+    var cdDl=confDelta(sma,smb,'delayed');
+
+    H+='<div style="border-bottom:2px solid #e4e2da;">';
+
+    /* ── LAYER 1: HEADER ── */
+    H+='<div style="padding:12px 18px;display:flex;align-items:center;gap:12px;background:#fafaf8;border-bottom:1px solid #e4e2da;flex-wrap:wrap;">';
+    H+='<div style="width:34px;height:34px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">'+escH(initials)+'</div>';
+    H+='<div>';
+    H+='<div style="font-size:14px;font-weight:700;color:#1a1a18;">'+escH(member)+'</div>';
+    H+='<div style="font-size:11px;color:#888;margin-top:1px;">'+totalRoles+' role'+(totalRoles!==1?'s':'')+' · '+escH(shortA)+' → '+escH(shortB)+'</div>';
+    H+='</div>';
+    H+='<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
+    /* On track badge */
+    var otC=cdOT.d>0?'#15803d':cdOT.d<0?'#b91c1c':'#15803d';
+    var otBg=cdOT.d>0?'#f0fdf4':cdOT.d<0?'#fef2f2':'#f0fdf4';
+    H+='<span style="background:'+otBg+';color:'+otC+';font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;">On track: '+escH(cdOT.str)+'</span>';
+    /* Uncertain badge */
+    var unC=cdUn.d>0?'#b45309':cdUn.d<0?'#15803d':'#b45309';
+    H+='<span style="background:#fffbeb;color:'+unC+';font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;">Uncertain: '+escH(cdUn.str)+'</span>';
+    /* Delayed badge */
+    var dlC=cdDl.d>0?'#b91c1c':cdDl.d<0?'#15803d':'#b91c1c';
+    var dlBg=cdDl.d>0?'#fef2f2':cdDl.d<0?'#f0fdf4':'#fef2f2';
+    H+='<span style="background:'+dlBg+';color:'+dlC+';font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;">Delayed: '+escH(cdDl.str)+'</span>';
+    if(!recA)H+='<span style="font-size:11px;color:#dc2626;background:#fef2f2;padding:3px 10px;border-radius:99px;">No record on '+escH(shortA)+'</span>';
+    if(!recB)H+='<span style="font-size:11px;color:#dc2626;background:#fef2f2;padding:3px 10px;border-radius:99px;">No record on '+escH(shortB)+'</span>';
+    H+='</div></div>';
+
+    /* ── LAYER 2: SUMMARY TILES ── */
+    var sumTiles=[
+      {l:'Screened',    a:sma.screenedToday, b:smb.screenedToday},
+      {l:'Sourced',     a:sma.sourcedToday,  b:smb.sourcedToday},
+      {l:'F1',          a:sma.iv1,           b:smb.iv1},
+      {l:'F2',          a:sma.iv2,           b:smb.iv2},
+      {l:'Final',       a:sma.finalIv,       b:smb.finalIv},
+      {l:'In Stages',   a:sma.totalInStages, b:smb.totalInStages, accent:col},
+      {l:'Stage Met',   a:sma.stageMet,      b:smb.stageMet}
+    ];
+    H+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e4e2da;">';
+    sumTiles.forEach(function(t,i){
+      var d=t.b-t.a;
+      var dC=d>0?'#16a34a':d<0?'#dc2626':'#888';
+      var dS=d===0?'—':(d>0?'+':'')+d;
+      H+='<div style="padding:12px 8px;text-align:center;border-right:'+(i<6?'1px solid #e4e2da':'none')+';background:'+(i===5?'#fdf8ff':'#fff')+'">';
+      H+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:4px;">'+escH(t.l)+'</div>';
+      H+='<div style="font-size:20px;font-weight:800;color:'+(t.accent||'#1a1a18')+';line-height:1;">'+t.b+'</div>';
+      H+='<div style="font-size:10px;color:#aaa;margin-top:2px;">'+t.a+' → '+t.b+'</div>';
+      H+='<div style="font-size:11px;font-weight:700;color:'+dC+';margin-top:1px;">'+dS+'</div>';
+      H+='</div>';
+    });
+    H+='</div>';
+
+    /* ── LAYER 3: ROLE-BY-ROLE TABLE ── */
+    var grpCols=[
+      {l:'Screened',    bg:'#f0fdf4',tc:'#166534', fA:'screenedToday',fB:'screenedToday'},
+      {l:'Assessment',  bg:'#f0fdf4',tc:'#166534', fA:'assessment',   fB:'assessment'},
+      {l:'F1',          bg:'#f5f3ff',tc:'#5b21b6', fA:'iv1',          fB:'iv1'},
+      {l:'F2',          bg:'#f5f3ff',tc:'#5b21b6', fA:'iv2',          fB:'iv2'},
+      {l:'Final',       bg:'#f5f3ff',tc:'#5b21b6', fA:'finalIv',      fB:'finalIv'},
+      {l:'In Stages',   bg:'#fdf4ff',tc:'#7e22ce', fA:'totalInStages',fB:'totalInStages',bold:true}
+    ];
+
+    H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    /* Group header row */
+    H+='<thead>';
+    H+='<tr style="background:#f5f4f0;">';
+    H+='<th rowspan="2" style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;min-width:160px;border-right:1px solid #e4e2da;">Role</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;border-right:1px solid #e4e2da;">Pri</th>';
+    grpCols.forEach(function(c,i){
+      H+='<th colspan="2" style="padding:4px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:'+c.tc+';background:'+c.bg+';border-right:'+(i<grpCols.length-1?'1px solid #e4e2da':'none')+';">'+escH(c.l)+'</th>';
+    });
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#9a3412;background:#fff7ed;border-left:1px solid #e4e2da;">Met</th>';
+    H+='<th rowspan="2" style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#065f46;background:#ecfdf5;">Confidence</th>';
+    H+='</tr>';
+    /* Date A / Date B sub-headers */
+    H+='<tr style="background:#fafaf8;">';
+    grpCols.forEach(function(c,i){
+      H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#aaa;background:'+c.bg+';">'+escH(shortA)+'</th>';
+      H+='<th style="padding:2px 5px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;color:#555;background:'+c.bg+';border-right:'+(i<grpCols.length-1?'1px solid #e4e2da':'none')+';">'+escH(shortB)+'</th>';
+    });
+    H+='</tr></thead><tbody>';
+
+    /* Data rows — one per role */
+    allRoleKeys.forEach(function(k,ri){
+      var rA=rmA[k]||null;
+      var rB=rmB[k]||null;
+      var display=rB||rA;
+      var isNew=!rA&&rB;
+      var isGone=rA&&!rB;
+      var rowBg=isNew?'#f0fdf4':isGone?'#fef2f2':ri%2===1?'#fafaf8':'#fff';
+
+      H+='<tr style="border-bottom:1px solid #f0efeb;background:'+rowBg+';">';
+      /* Role name */
+      H+='<td style="padding:6px 10px;font-weight:500;border-right:1px solid #e4e2da;">';
+      H+=escH(display.roleTitle||'—');
+      if(display.location)H+=' <span style="color:#888;font-size:10px;">'+escH(display.location)+'</span>';
+      if(display.hm)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(display.hm)+'</span>';
+      if(isNew)H+='<span style="background:#f0fdf4;color:#15803d;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">NEW</span>';
+      if(isGone)H+='<span style="background:#fef2f2;color:#b91c1c;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">GONE</span>';
+      H+='</td>';
+      /* Priority */
+      H+='<td style="padding:6px 8px;border-right:1px solid #e4e2da;">'+pBadge(display.priority)+'</td>';
+
+      /* Stage columns */
+      grpCols.forEach(function(c,ci){
+        var vA=rA?n(rA[c.fA]):null;
+        var vB=rB?n(rB[c.fB]):null;
+        var d=(vA!==null&&vB!==null)?vB-vA:null;
+        var dC=d===null?'#aaa':d>0?'#16a34a':d<0?'#dc2626':'#aaa';
+        var dS=d===null?'':d===0?'':'('+(d>0?'+':'')+d+')';
+        /* Special display for N/A fields */
+        var naA=(c.l==='Assessment'&&rA&&(rA.assessment||'').toLowerCase()==='na')||(c.l==='F2'&&rA&&(rA.iv2||'').toLowerCase()==='n/a');
+        var naB=(c.l==='Assessment'&&rB&&(rB.assessment||'').toLowerCase()==='na')||(c.l==='F2'&&rB&&(rB.iv2||'').toLowerCase()==='n/a');
+        var dispA=naA?'N/A':(vA!==null?(vA||'—'):'—');
+        var dispB=naB?'N/A':(vB!==null?(vB||'—'):'—');
+        var br=ci<grpCols.length-1?'border-right:1px solid #e4e2da;':'';
+        /* Date A cell — muted */
+        H+='<td style="padding:6px 7px;text-align:center;background:'+c.bg+';opacity:.5;color:#555;font-size:11px;">'+dispA+'</td>';
+        /* Date B cell — strong + delta inline */
+        H+='<td style="padding:6px 7px;text-align:center;background:'+c.bg+';'+br+'">';
+        H+='<span style="font-weight:'+(c.bold?'800':'700')+';color:'+(c.bold?col:'#1a1a18')+';font-size:'+(c.bold?'13':'11')+'px;">'+dispB+'</span>';
+        if(dS)H+=' <span style="font-size:10px;font-weight:700;color:'+dC+';">'+dS+'</span>';
+        H+='</td>';
+      });
+
+      /* Met */
+      H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;border-left:1px solid #e4e2da;">'+metBadge(display.stageTargetMet)+'</td>';
+      /* Confidence — show A→B if changed */
+      var confA=rA?(rA.confidence||''):'';
+      var confB=rB?(rB.confidence||''):'';
+      function cl(c){var x=c.toLowerCase();return x.indexOf('track')>-1?'On Track':x.indexOf('uncertain')>-1?'Uncertain':x.indexOf('delay')>-1?'Delayed':'';}
+      var labelA=cl(confA),labelB=cl(confB);
+      var changed=labelA&&labelB&&labelA!==labelB;
+      var confCol=labelB==='On Track'?'#16a34a':labelB==='Uncertain'?'#d97706':labelB==='Delayed'?'#dc2626':'#888';
+      H+='<td style="padding:6px 8px;text-align:center;background:#ecfdf5;">';
+      if(changed){
+        var fromC=labelA==='On Track'?'#16a34a':labelA==='Uncertain'?'#d97706':'#dc2626';
+        H+='<span style="font-size:10px;color:'+fromC+';opacity:.6;">'+escH(labelA)+'</span>';
+        H+='<span style="font-size:9px;color:#aaa;"> → </span>';
+      }
+      H+='<span style="font-size:11px;font-weight:700;color:'+confCol+';">'+escH(labelB||labelA||'—')+'</span>';
+      H+='</td>';
+      H+='</tr>';
+    });
+
+    /* Totals row */
+    H+='<tr style="background:#f5f4f0;border-top:2px solid #e4e2da;">';
+    H+='<td colspan="2" style="padding:5px 10px;font-size:10px;color:#888;font-style:italic;border-right:1px solid #e4e2da;">Total · '+escH(member)+'</td>';
+    grpCols.forEach(function(c,ci){
+      var totA=0,totB=0;
+      allRoleKeys.forEach(function(k){
+        var rA=rmA[k],rB=rmB[k];
+        if(rA)totA+=n(rA[c.fA]);
+        if(rB)totB+=n(rB[c.fB]);
+      });
+      var d=totB-totA;
+      var dC=d>0?'#16a34a':d<0?'#dc2626':'#aaa';
+      var dS=d===0?'—':(d>0?'+':'')+d;
+      var br=ci<grpCols.length-1?'border-right:1px solid #e4e2da;':'';
+      H+='<td style="padding:5px 7px;text-align:center;background:'+c.bg+';opacity:.5;font-size:11px;color:#555;">'+totA+'</td>';
+      H+='<td style="padding:5px 7px;text-align:center;background:'+c.bg+';'+br+'"><span style="font-weight:700;color:'+(c.bold?col:'#1a1a18')+';">'+totB+'</span> <span style="font-size:10px;font-weight:700;color:'+dC+';">'+(d===0?'':'('+dS+')')+'</span></td>';
+    });
+    H+='<td style="background:#fff7ed;border-left:1px solid #e4e2da;"></td><td style="background:#ecfdf5;"></td>';
+    H+='</tr>';
+
+    H+='</tbody></table></div>';
+    H+='</div>';/* end member block */
+  });
+  H+='</div>';/* end per-recruiter section */
+
+  /* ══ ③ ROLE MOVEMENT ══ */
+  var mapA={},mapB={};
+  rowsA.forEach(function(r){var k=normKey(r);if(k)mapA[k]=r;});
+  rowsB.forEach(function(r){var k=normKey(r);if(k)mapB[k]=r;});
+
+  var newRoles=Object.keys(mapB).filter(function(k){return!mapA[k];}).map(function(k){return mapB[k];});
+  var goneRoles=Object.keys(mapA).filter(function(k){return!mapB[k];}).map(function(k){return mapA[k];});
+  var confChanges=[];
+  var metChanges=[];
+  Object.keys(mapA).forEach(function(k){
+    if(!mapB[k])return;
+    var ra=mapA[k],rb=mapB[k];
+    var ca=(ra.confidence||'').toLowerCase(),cb=(rb.confidence||'').toLowerCase();
+    function confLabel(c){return c.indexOf('track')>-1?'On Track':c.indexOf('uncertain')>-1?'Uncertain':c.indexOf('delay')>-1?'Delayed':'';}
+    var la=confLabel(ca),lb=confLabel(cb);
+    if(la&&lb&&la!==lb)confChanges.push({title:rb.roleTitle||k,from:la,to:lb,member:rb._member||''});
+    var ma=(ra.stageTargetMet||'').toLowerCase(),mb=(rb.stageTargetMet||'').toLowerCase();
+    var wasMet=ma.indexOf('met')>-1||ma==='yes'||ma==='✓';
+    var isMet=mb.indexOf('met')>-1||mb==='yes'||mb==='✓';
+    if(wasMet!==isMet)metChanges.push({title:rb.roleTitle||k,member:rb._member||'',nowMet:isMet});
+  });
+
+  H+='<div style="background:#fff;border:1px solid #e4e2da;border-top:none;">';
+  H+='<div style="background:#f5f4f0;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;border-bottom:1px solid #e4e2da;">Role movement</div>';
+  H+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid #e4e2da;">';
+
+  /* New roles */
+  H+='<div style="padding:14px 16px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#15803d;margin-bottom:8px;">New roles <span style="background:#f0fdf4;padding:1px 7px;border-radius:99px;font-size:11px;color:#15803d;">'+newRoles.length+'</span></div>';
+  if(newRoles.length){newRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+escH(r.roleTitle||'—')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
+  else H+='<div style="font-size:12px;color:#aaa;">None</div>';
+  H+='</div>';
+
+  /* Gone roles */
+  H+='<div style="padding:14px 16px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#b91c1c;margin-bottom:8px;">Removed roles <span style="background:#fef2f2;padding:1px 7px;border-radius:99px;font-size:11px;color:#b91c1c;">'+goneRoles.length+'</span></div>';
+  if(goneRoles.length){goneRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+escH(r.roleTitle||'—')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
+  else H+='<div style="font-size:12px;color:#aaa;">None</div>';
+  H+='</div>';
+
+  /* Confidence changes */
+  H+='<div style="padding:14px 16px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#b45309;margin-bottom:8px;">Confidence shifts <span style="background:#fffbeb;padding:1px 7px;border-radius:99px;font-size:11px;color:#b45309;">'+confChanges.length+'</span></div>';
+  if(confChanges.length){
+    confChanges.forEach(function(c){
+      var fc=c.from==='On Track'?'#16a34a':c.from==='Uncertain'?'#d97706':'#dc2626';
+      var tc=c.to==='On Track'?'#16a34a':c.to==='Uncertain'?'#d97706':'#dc2626';
+      H+='<div style="font-size:12px;padding:3px 0;border-bottom:1px solid #f0efeb;">';
+      H+=escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
+      H+='<br><span style="font-size:10px;font-weight:700;color:'+fc+';">'+escH(c.from)+'</span>';
+      H+='<span style="color:#aaa;font-size:10px;"> → </span>';
+      H+='<span style="font-size:10px;font-weight:700;color:'+tc+';">'+escH(c.to)+'</span></div>';
+    });
+  } else H+='<div style="font-size:12px;color:#aaa;">No changes</div>';
+  H+='</div>';
+
+  /* Stage met changes */
+  H+='<div style="padding:14px 16px;">';
+  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6d28d9;margin-bottom:8px;">Stage target changes <span style="background:#f5f3ff;padding:1px 7px;border-radius:99px;font-size:11px;color:#6d28d9;">'+metChanges.length+'</span></div>';
+  if(metChanges.length){
+    metChanges.forEach(function(c){
+      H+='<div style="font-size:12px;padding:3px 0;border-bottom:1px solid #f0efeb;">';
+      H+=escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
+      H+='<br><span style="font-size:10px;font-weight:700;color:'+(c.nowMet?'#16a34a':'#dc2626')+';">'+(c.nowMet?'Now met ✓':'No longer met')+'</span></div>';
+    });
+  } else H+='<div style="font-size:12px;color:#aaa;">No changes</div>';
+  H+='</div>';
+  H+='</div></div>';
+
+  /* ══ ④ FUNNEL DEPTH SIDE BY SIDE ══ */
+  var funnelMetrics=[
+    {l:'Screened today', a:sA.screenedToday, b:sB.screenedToday},
+    {l:'Assessment',     a:sA.assessment,    b:sB.assessment},
+    {l:'Interview 1 (F1)',a:sA.iv1,          b:sB.iv1},
+    {l:'Interview 2 (F2)',a:sA.iv2,          b:sB.iv2},
+    {l:'Final interview', a:sA.finalIv,      b:sB.finalIv},
+    {l:'Total in stages', a:sA.totalInStages,b:sB.totalInStages,bold:true}
+  ];
+  var maxF=Math.max.apply(null,funnelMetrics.map(function(f){return Math.max(f.a,f.b);}));if(!maxF)maxF=1;
+
+  H+='<div style="background:#fff;border:1px solid #e4e2da;border-top:none;border-radius:0 0 12px 12px;">';
+  H+='<div style="background:#f5f4f0;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#555;border-bottom:1px solid #e4e2da;display:flex;justify-content:space-between;align-items:center;">';
+  H+='<span>Funnel depth</span>';
+  H+='<span style="display:flex;align-items:center;gap:16px;font-size:10px;font-weight:400;color:#888;">';
+  H+='<span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:20px;height:6px;background:#cbd5e1;border-radius:2px;"></span>'+escH(shortA)+'</span>';
+  H+='<span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:20px;height:6px;background:#6c63ff;border-radius:2px;"></span>'+escH(shortB)+'</span>';
+  H+='</span></div>';
+  H+='<div style="padding:16px 20px;">';
+  funnelMetrics.forEach(function(f){
+    var pctA=Math.round(f.a/maxF*100);
+    var pctB=Math.round(f.b/maxF*100);
+    var d=f.b-f.a;
+    var dC=d>0?'#16a34a':d<0?'#dc2626':'#888';
+    var dS=d===0?'—':(d>0?'+':'')+d;
+    H+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+    H+='<div style="min-width:150px;font-size:12px;'+(f.bold?'font-weight:700;color:#1a1a18;':'color:#555;')+'">'+escH(f.l)+'</div>';
+    H+='<div style="flex:1;display:flex;flex-direction:column;gap:3px;">';
+    /* Date A bar — grey */
+    H+='<div style="background:#f0efeb;border-radius:3px;height:10px;overflow:hidden;"><div style="background:#cbd5e1;height:100%;width:'+pctA+'%;border-radius:3px;"></div></div>';
+    /* Date B bar — colour */
+    H+='<div style="background:#f0efeb;border-radius:3px;height:10px;overflow:hidden;"><div style="background:'+(f.bold?'#6c63ff':'#94a3b8')+';height:100%;width:'+pctB+'%;border-radius:3px;"></div></div>';
+    H+='</div>';
+    H+='<div style="min-width:26px;text-align:right;font-size:13px;font-weight:'+(f.bold?'800':'600')+';color:#1a1a18;">'+f.b+'</div>';
+    H+='<div style="min-width:30px;text-align:right;font-size:11px;font-weight:700;color:'+dC+';">'+dS+'</div>';
+    H+='</div>';
+  });
+  H+='</div></div>';
+
+  document.getElementById('cmp-wrap').innerHTML=H;
 }
 
 /* ════ WEEKLY ════ */
@@ -1130,14 +2211,91 @@ function expCSV(recs,fname){
 function clearAll(){if(!confirm('Delete ALL records?'))return;localStorage.removeItem(SK);localStorage.removeItem(MK);fillWeekSels();fillMbSels();renderArchive();toast('Cleared.');}
 
 /* ════ SCHEDULE ════ */
-function schedMidnight(){var now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);setTimeout(function(){runMidnight();schedMidnight();},next-now);}
-function schedFriday(){var now=new Date(),d=((5-now.getDay())+7)%7||7;var nf=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,23,59,0);setTimeout(function(){compileWeekly();schedFriday();},nf-now);}
-function runMidnight(){var m=lm();m.lastMidnightRun=new Date().toISOString();sm(m);fillWeekSels();renderArchive();updateSchedUI();logS('Nightly: '+new Date().toLocaleString());toast('Nightly consolidation complete.');}
+var SERVER_URL='http://127.0.0.1:3847';
+
+function schedFriday(){
+  var now=new Date(),d=((5-now.getDay())+7)%7||7;
+  var nf=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,23,59,0);
+  setTimeout(function(){compileWeekly();schedFriday();},nf-now);
+}
+
+/* Build a self-contained HTML snapshot of the current report card */
+function buildReportHTML(){
+  var card=document.getElementById('report-card');
+  if(!card)return null;
+  var st=Array.from(document.querySelectorAll('style')).map(function(s){return s.textContent;}).join('\n');
+  return'<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TA Daily Report</title><style>'+st+'body{padding:20px;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+card.outerHTML+'</body></html>';
+}
+
+/* Send report to local server */
+function sendToServer(onDone){
+  if(!P.rows.length){if(onDone)onDone(false,'No data loaded — upload a snapshot first.');return;}
+  var html=buildReportHTML();
+  if(!html){if(onDone)onDone(false,'No report card — generate the report first.');return;}
+  var payload=JSON.stringify({
+    date   :P.date||toIn(new Date()),
+    member :P.member||'Unknown',
+    dept   :P.dept||'',
+    records:ls(),
+    html   :html
+  });
+  fetch(SERVER_URL+'/send-report',{
+    method :'POST',
+    headers:{'Content-Type':'application/json'},
+    body   :payload
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.ok){
+      var m=lm();m.lastEmailSent=new Date().toISOString();sm(m);
+      updateSchedUI();
+      logS('Email sent · '+new Date().toLocaleString());
+      if(onDone)onDone(true,null);
+    } else {
+      logS('Email failed: '+data.error);
+      if(onDone)onDone(false,data.error);
+    }
+  })
+  .catch(function(e){
+    logS('Server unreachable: '+e.message);
+    if(onDone)onDone(false,e.message);
+  });
+}
+
+function manualSendNow(){
+  if(!P.rows.length){toast('No data loaded — upload a snapshot first.');return;}
+  toast('Sending…');
+  sendToServer(function(ok,err){
+    if(ok)toast('✓ Report sent to tenille.kok@cialfo.com.sg');
+    else toast('⚠ Failed: '+(err||'Server unreachable'));
+  });
+}
+
+/* Check if local server is reachable */
+function checkServerStatus(){
+  var dot=document.getElementById('srv-dot');
+  var lbl=document.getElementById('srv-lbl');
+  if(!dot||!lbl)return;
+  fetch(SERVER_URL+'/health',{signal:AbortSignal.timeout(2000)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok){dot.style.background='#16a34a';lbl.textContent='Server running · port 3847';}
+    })
+    .catch(function(){
+      dot.style.background='#dc2626';
+      lbl.textContent='Server offline — run setup.sh';
+    });
+}
+
 function updateSchedUI(){
   var m=lm(),now=new Date();
-  var nm=document.getElementById('next-mid');if(nm){var next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);nm.textContent=next.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})+' 12:00 AM';}
-  var lm2=document.getElementById('last-mid');if(lm2)lm2.textContent=m.lastMidnightRun?new Date(m.lastMidnightRun).toLocaleString():'Not yet run';
-  var nf=document.getElementById('next-fri');if(nf){var d=((5-now.getDay())+7)%7||7;var fri=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d);nf.textContent=fri.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'short'})+' 11:59 PM';}
+  var lm2=document.getElementById('last-mid');
+  if(lm2)lm2.textContent=m.lastMidnightRun?new Date(m.lastMidnightRun).toLocaleString():'Not yet run';
+  var le=document.getElementById('last-email');
+  if(le)le.textContent=m.lastEmailSent?new Date(m.lastEmailSent).toLocaleString():'Not yet sent';
+  var nf=document.getElementById('next-fri');
+  if(nf){var d=((5-now.getDay())+7)%7||7;var fri=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d);nf.textContent=fri.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'short'})+' 11:59 PM';}
+  checkServerStatus();
 }
 function logS(msg){var e=document.getElementById('sched-log');if(e)e.textContent='✓ '+msg;}
 
