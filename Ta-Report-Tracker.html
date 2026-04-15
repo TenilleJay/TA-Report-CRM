@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TA Report Hub — ManifestGlobal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --dark:#1a1a18;--dark2:#252522;
+  --bg:#f0efeb;--bg2:#f5f4f0;--bg3:#fff;
+  --border:#e4e2da;--border-dark:rgba(255,255,255,0.1);
+  --text:#1a1a18;--text2:#555;--text3:#888;
+  --purple:#6c63ff;--purple-bg:#eef2ff;--purple-text:#4f46e5;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-text:#15803d;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-text:#b45309;
+  --red:#dc2626;--red-bg:#fef2f2;--red-text:#b91c1c;
+  --r:12px;--rs:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+#app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+#sidebar{width:218px;min-width:218px;background:var(--dark);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border-dark);}
+.sb-logo-title{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.01em;}
+.sb-logo-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.sb-nav{padding:8px 0;flex:1;}
+.sb-group{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:14px 18px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.55);}
+.sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+.sb-item.active{background:rgba(108,99,255,0.18);color:var(--purple);}
+.sb-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.18);flex-shrink:0;}
+.sb-item.active .sb-dot{background:var(--purple);}
+.sb-footer{padding:12px 18px;border-top:1px solid var(--border-dark);font-size:11px;color:rgba(255,255,255,0.3);line-height:1.9;}
+
+/* MAIN */
+#main{flex:1;overflow:auto;min-width:0;}
+.page-hero{background:var(--dark);border-bottom:1px solid var(--border-dark);padding:22px 28px;}
+.page-hero h1{font-size:20px;font-weight:600;color:#fff;margin-bottom:4px;letter-spacing:-.02em;}
+.page-hero p{font-size:13px;color:rgba(255,255,255,0.45);}
+.page-body{padding:24px 28px;}
+.section{display:none;}.section.active{display:block;}
+
+/* CARDS */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px;}
+.ct{font-size:14px;font-weight:600;margin-bottom:4px;letter-spacing:-.01em;}
+.cs{font-size:12px;color:var(--text3);margin-bottom:14px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:inherit;transition:background .1s;}
+.btn:hover{background:var(--bg2);}
+.btn-primary{background:var(--purple);color:#fff;border-color:var(--purple);}.btn-primary:hover{background:#5b54e8;}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}.btn-green:hover{background:var(--green-text);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+
+/* INPUTS */
+input[type=text],input[type=date],select{font-family:inherit;font-size:13px;padding:7px 11px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg3);color:var(--text);outline:none;}
+input:focus,select:focus{border-color:var(--purple);}
+textarea{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg3);color:var(--text);outline:none;resize:vertical;width:100%;}
+textarea:focus{border-color:var(--purple);}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:36px 24px;text-align:center;cursor:pointer;transition:all .15s;position:relative;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--purple);background:var(--purple-bg);}
+.uz-icon{font-size:36px;margin-bottom:12px;display:block;}
+.uz-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.uz-sub{font-size:12px;color:var(--text3);line-height:1.7;}
+.uz-types{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+.uz-tag{font-size:11px;font-weight:500;padding:3px 10px;border-radius:99px;border:1px solid var(--border);color:var(--text3);}
+
+/* AI PROCESSING */
+.ai-thinking{background:var(--dark);border-radius:var(--r);padding:20px 22px;display:flex;align-items:center;gap:14px;}
+.ai-spinner{width:28px;height:28px;border:2px solid rgba(108,99,255,0.3);border-top-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-msg{color:rgba(255,255,255,0.8);font-size:13px;}
+.ai-sub{color:rgba(255,255,255,0.4);font-size:11px;margin-top:3px;}
+
+/* PREVIEW IMAGE */
+.preview-img{max-width:100%;max-height:300px;border-radius:var(--rs);border:1px solid var(--border);display:block;margin-bottom:12px;}
+
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;background:var(--bg2);color:var(--text3);}
+td{font-size:12px;color:var(--text);padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:var(--bg2);}
+th.gr{background:#e8f4fd;color:#1e40af;}th.gd{background:#f0fdf4;color:#166534;}
+th.gp{background:#f5f3ff;color:#5b21b6;}th.gc{background:#fdf4ff;color:#7e22ce;}
+th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
+
+/* BADGES */
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:99px;}
+.bh{background:#fef2f2;color:#b91c1c;}.bm{background:#fffbeb;color:#b45309;}.bl{background:#f0fdf4;color:#15803d;}
+.bg{background:var(--green-bg);color:var(--green-text);}.ba{background:var(--amber-bg);color:var(--amber-text);}
+.br{background:var(--red-bg);color:var(--red-text);}.bb{background:var(--purple-bg);color:var(--purple-text);}.bp{background:#f5f3ff;color:#6d28d9;}
+
+/* NOTICES */
+.notice{border-radius:var(--rs);padding:10px 14px;font-size:12px;margin-bottom:10px;line-height:1.6;}
+.nb{background:var(--purple-bg);color:var(--purple-text);border-left:3px solid var(--purple);}
+.ng{background:var(--green-bg);color:var(--green-text);border-left:3px solid var(--green);}
+.na{background:var(--amber-bg);color:var(--amber-text);border-left:3px solid var(--amber);}
+.nr{background:var(--red-bg);color:var(--red-text);border-left:3px solid var(--red);}
+
+/* REPORT */
+#report-card{background:#fff;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);}
+.rh{padding:16px 22px;display:flex;justify-content:space-between;align-items:center;}
+.rh-co{font-size:10px;font-weight:600;letter-spacing:.1em;opacity:.55;text-transform:uppercase;margin-bottom:2px;}
+.rh-title{font-size:17px;font-weight:700;}
+.rh-right{text-align:right;font-size:12px;opacity:.75;line-height:1.8;}
+.snap-grid{display:grid;border-bottom:1px solid var(--border);}
+.snap-tile{padding:13px 8px;text-align:center;border-right:1px solid var(--border);}
+.snap-tile:last-child{border-right:none;}
+.snap-num{font-size:24px;font-weight:800;line-height:1;}
+.snap-lbl{font-size:9px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;}
+.sec-head{padding:8px 18px;background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px;}
+.sec-acc{width:3px;height:13px;border-radius:1px;flex-shrink:0;}
+.rt{width:100%;border-collapse:collapse;}
+.rt th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:5px 8px;border-bottom:1.5px solid var(--border);text-align:left;white-space:nowrap;}
+.rt td{font-size:11px;padding:5px 8px;border-bottom:1px solid #f5f4f0;vertical-align:middle;}
+.rt tr:last-child td{border-bottom:none;}
+.rf{padding:8px 18px;background:var(--bg2);border-top:1px solid var(--border);display:flex;justify-content:space-between;}
+.rf-txt{font-size:10px;color:var(--text3);}
+
+/* MEMBER CARD */
+.wmc{background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
+.wmh{padding:12px 16px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--border);}
+.wava{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.wmn{font-size:14px;font-weight:600;}.wms{font-size:11px;color:var(--text3);}
+.wt-grid{display:grid;border-bottom:1px solid var(--border);}
+.wt{padding:10px 6px;text-align:center;border-right:1px solid var(--border);}
+.wt:last-child{border-right:none;}
+.wt-val{font-size:18px;font-weight:700;}.wt-lbl{font-size:9px;color:var(--text3);margin-top:1px;text-transform:uppercase;}
+
+/* MISC */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.step{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-dot{width:26px;height:26px;border-radius:50%;background:var(--purple-bg);color:var(--purple-text);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-dot.done{background:var(--green-bg);color:var(--green-text);}
+.step-title{font-size:13px;font-weight:500;}.step-desc{font-size:12px;color:var(--text3);margin-top:1px;}
+.sb-active{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 9px;border-radius:99px;background:var(--green-bg);color:var(--green-text);font-weight:500;}
+.row-new{background:#f0fdf4;}.row-gone{background:#fef2f2;opacity:.8;}.row-chg{background:#fffbeb;}
+.hl-n,.hl-g,.hl-c{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.hl-n{background:var(--green-bg);color:var(--green-text);}.hl-g{background:var(--red-bg);color:var(--red-text);}.hl-c{background:var(--amber-bg);color:var(--amber-text);}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:13px;}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:9px 16px;border-radius:var(--rs);font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-thumb{background:#d0cec4;border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-title">TA Report Hub</div>
+    <div class="sb-logo-sub">ManifestGlobal · Talent Acquisition</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-group">Daily</div>
+    <div class="sb-item active" onclick="nav('upload')"><div class="sb-dot"></div>Upload Snapshot</div>
+    <div class="sb-item" onclick="nav('report')"><div class="sb-dot"></div>Daily Report</div>
+    <div class="sb-item" onclick="nav('compare')"><div class="sb-dot"></div>Day-over-Day Compare</div>
+    <div class="sb-group">Weekly</div>
+    <div class="sb-item" onclick="nav('weekly')"><div class="sb-dot"></div>Weekly Summary</div>
+    <div class="sb-group">Records</div>
+    <div class="sb-item" onclick="nav('archive')"><div class="sb-dot"></div>Daily Archive</div>
+    <div class="sb-item" onclick="nav('schedule')"><div class="sb-dot"></div>Auto-Schedule</div>
+  </nav>
+  <div class="sb-footer">
+    <div id="sb-today"></div>
+    <div id="sb-last" style="margin-top:2px;"></div>
+  </div>
+</aside>
+
+<main id="main">
+
+<!-- ══ UPLOAD ══ -->
+<div class="section active" id="s-upload">
+  <div class="page-hero">
+    <h1>Upload Daily Snapshot</h1>
+    <p>Drop a screenshot, photo, CSV, or paste data — AI reads any format.</p>
+  </div>
+  <div class="page-body">
+
+    <!-- DETAILS ROW -->
+    <div class="card">
+      <div class="ct">Step 1 — Details</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Report date</div>
+          <input type="date" id="up-date" style="width:155px;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter / Sourcer</div>
+          <select id="up-member" style="width:160px;">
+            <option value="">— select</option>
+            <option value="Kartikey">Kartikey</option>
+            <option value="Gloria">Gloria</option>
+            <option value="Vipul">Vipul</option>
+            <option value="Gaurav">Gaurav</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
+          <select id="up-dept" style="width:200px;">
+            <option value="">— select department</option>
+            <option value="Student Placement">Student Placement</option>
+            <option value="Talent">Talent</option>
+            <option value="Finance">Finance</option>
+            <option value="Office Management">Office Management</option>
+            <option value="Central Marketing">Central Marketing</option>
+            <option value="Central Operations">Central Operations</option>
+            <option value="Product">Product</option>
+            <option value="Engineering">Engineering</option>
+            <option value="K12 Cialfo &amp; BridgeU">K12 Cialfo &amp; BridgeU</option>
+            <option value="Explore">Explore</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Type</div>
+          <select id="up-role" style="width:130px;">
+            <option value="recruiter">Recruiter</option>
+            <option value="sourcer">Sourcer</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div id="key-set-row" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+          <span style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;">🔑 Anthropic API Key</span>
+          <span id="key-status" style="font-size:11px;font-weight:500;"></span>
+          <span style="flex:1;"></span>
+          <button class="btn btn-sm" id="key-edit-btn" onclick="openKeyModal()" style="font-size:11px;">Set / Change Key</button>
+        </div>
+      </div>
+
+      <!-- KEY MODAL -->
+      <div id="key-modal" onclick="if(event.target===this)closeKeyModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:28px 28px 22px;width:500px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Set Anthropic API Key</div>
+          <div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.6;">Your key is stored only in this browser (localStorage). It never leaves your device — it is sent directly to Anthropic's API when you upload a screenshot.<br><br>Get a free key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#6c63ff;">console.anthropic.com/settings/keys</a></div>
+          <input type="password" id="api-key" placeholder="sk-ant-api03-…" autocomplete="off"
+            style="width:100%;font-family:monospace;font-size:13px;padding:9px 12px;border:1px solid #e4e2da;border-radius:8px;margin-bottom:12px;"
+            onkeydown="if(event.key==='Enter')saveKeyNow()">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button class="btn btn-sm" onclick="toggleKeyVis()" id="key-vis-btn">Show</button>
+            <button class="btn btn-sm" onclick="closeKeyModal()">Cancel</button>
+            <button class="btn btn-sm btn-primary" onclick="saveKeyNow()">💾 Save &amp; Close</button>
+            <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);" onclick="clearKeyNow()">Remove Key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD ZONE -->
+    <div class="card">
+      <div class="ct">Step 2 — Upload your file</div>
+      <div class="cs">Drop any file type — the AI will extract the role data automatically.</div>
+      <div class="upload-zone" id="uz" onclick="document.getElementById('file-in').click()">
+        <input type="file" id="file-in" accept="image/*,.csv,.CSV,.tsv,.txt,.xlsx,.xls" style="display:none" onchange="handleFile(event)">
+        <span class="uz-icon">📎</span>
+        <div class="uz-title">Click to browse or drag & drop</div>
+        <div class="uz-sub">Screenshot • Photo of spreadsheet • CSV file • Excel file • Plain text</div>
+        <div class="uz-types">
+          <span class="uz-tag">📸 PNG / JPG screenshot</span>
+          <span class="uz-tag">📊 CSV / Excel</span>
+          <span class="uz-tag">📄 Any text file</span>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- STATUS / AI THINKING -->
+    <div id="ai-status"></div>
+
+    <!-- PREVIEW -->
+    <div class="card" id="preview-card" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="ct" style="margin-bottom:0;">Preview — <span id="prev-count"></span></div>
+          <div id="prev-note" style="font-size:12px;color:var(--text3);margin-top:3px;max-width:600px;line-height:1.5;"></div>
+        </div>
+        <div class="btn-row" style="margin-bottom:0;">
+          <button class="btn btn-primary" onclick="processUpload()">Generate Report →</button>
+          <button class="btn" onclick="clearUp()">Clear</button>
+        </div>
+      </div>
+      <div id="prev-img-wrap" style="display:none;margin-bottom:12px;"></div>
+      <div class="tw" id="prev-tbl"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ DAILY REPORT ══ -->
+<div class="section" id="s-report">
+  <div class="page-hero"><h1>Daily Report</h1><p>Auto-generated from the uploaded snapshot.</p></div>
+  <div class="page-body">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="genReport()">Regenerate</button>
+      <button class="btn btn-green" onclick="saveRecord()">Save to Archive</button>
+      <button class="btn" onclick="printRpt()">Print / PDF</button>
+      <button class="btn" onclick="copyRpt()">Copy Text</button>
+    </div>
+    <div id="rpt-wrap"><div class="empty">Upload a snapshot to generate your daily report.</div></div>
+  </div>
+</div>
+
+<!-- ══ COMPARE ══ -->
+<div class="section" id="s-compare">
+  <div class="page-hero"><h1>Day-over-Day Comparison</h1><p>Compare two saved snapshots side by side.</p></div>
+  <div class="page-body">
+    <div class="card">
+      <div class="g2">
+        <div><div style="font-size:11px;color:var(--text3);margin-bottom:5px;">Baseline (previous)</div><select id="cmp-from" style="width:100%"><option value="">— select</option></select></div>
+        <div><div style="font-size:11px;color:var(--text3);margin-bottom:5px;">Current (compare to)</div><select id="cmp-to" style="width:100%"><option value="">— select</option></select></div>
+      </div>
+      <div style="margin-top:12px;"><button class="btn btn-primary" onclick="runCmp()">Run Comparison</button></div>
+    </div>
+    <div id="cmp-wrap"><div class="empty">Select two dates to compare.</div></div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY ══ -->
+<div class="section" id="s-weekly">
+  <div class="page-hero"><h1>Weekly Summary</h1><p>Auto-compiled from all saved daily records.</p></div>
+  <div class="page-body">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:12px;color:var(--text3);">Week</span>
+          <select id="wk-sel" onchange="renderWeekly()" style="width:190px;"></select>
+        </div>
+        <div class="btn-row" style="margin-bottom:0;">
+          <button class="btn btn-green" onclick="compileWeekly()">Compile Now</button>
+          <button class="btn btn-primary" onclick="exportWeekly()">Export CSV</button>
+        </div>
+      </div>
+    </div>
+    <div id="weekly-wrap"><div class="empty">Save daily reports to build your weekly summary.</div></div>
+  </div>
+</div>
+
+<!-- ══ ARCHIVE ══ -->
+<div class="section" id="s-archive">
+  <div class="page-hero"><h1>Daily Archive</h1><p>All saved daily snapshots.</p></div>
+  <div class="page-body">
+    <div class="card">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="arc-q" placeholder="Search…" oninput="renderArchive()" style="width:200px;">
+        <select id="arc-mb" onchange="renderArchive()" style="width:160px;"><option value="all">All members</option></select>
+        <button class="btn btn-sm btn-primary" onclick="exportAll()">Export All CSV</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="gr">Date</th><th class="gr">Member</th><th class="gr">Dept</th><th class="gr">Type</th>
+          <th class="gd">Screened</th><th class="gd">Sourced</th><th class="gd">Calendly</th>
+          <th class="gp">IV1</th><th class="gp">IV2</th><th class="gp">Final</th><th class="gp">Assess</th>
+          <th class="gc">Total Stages</th>
+          <th class="gn">On Track</th><th class="gn">Uncertain</th><th class="gn">Delayed</th>
+          <th class="gc">Stage Met</th><th class="gc">Open Roles</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="arc-body"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHEDULE ══ -->
+<div class="section" id="s-schedule">
+  <div class="page-hero"><h1>Auto-Schedule</h1><p>Nightly consolidation · Friday end-of-week summary.</p></div>
+  <div class="page-body">
+    <div class="g2">
+      <div class="card">
+        <div class="ct">Nightly Consolidation</div>
+        <div class="cs">Runs at 12:00 AM while this tab is open.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="sb-active">● Active</span></div>
+        <div class="step"><div class="step-dot done">✓</div><div><div class="step-title">Collect all saved records</div><div class="step-desc">From browser storage</div></div></div>
+        <div class="step"><div class="step-dot">→</div><div><div class="step-title">Available in Archive + Weekly</div><div class="step-desc">Ready next morning</div></div></div>
+        <div class="divider"></div>
+        <div style="font-size:12px;color:var(--text3);">Next: <strong id="next-mid" style="color:var(--text);"></strong></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">Last: <strong id="last-mid" style="color:var(--text);"></strong></div>
+      </div>
+      <div class="card">
+        <div class="ct">End-of-Week Summary</div>
+        <div class="cs">Compiles every Friday at 11:59 PM.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="sb-active">● Active</span></div>
+        <div class="step"><div class="step-dot done">✓</div><div><div class="step-title">Collect Mon–Fri records</div><div class="step-desc">Grouped by ISO week</div></div></div>
+        <div class="step"><div class="step-dot">→</div><div><div class="step-title">Available in Weekly Summary</div><div class="step-desc">Exportable to CSV</div></div></div>
+        <div class="divider"></div>
+        <div style="font-size:12px;color:var(--text3);">Next: <strong id="next-fri" style="color:var(--text);"></strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Manual triggers</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runMidnight()">Run Nightly Now</button>
+        <button class="btn btn-green" onclick="compileWeekly()">Compile Weekly Now</button>
+        <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="clearAll()">Clear All Data</button>
+      </div>
+      <div id="sched-log" style="font-size:12px;color:var(--text3);"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ════ STORAGE ════ */
+var SK='taHub_v1',MK='taHubMeta_v1';
+function ls(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){return[];}}
+function ss(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
+function lm(){try{return JSON.parse(localStorage.getItem(MK)||'{}');}catch(e){return{};}}
+function sm(o){try{localStorage.setItem(MK,JSON.stringify(o));}catch(e){}}
+var P={rows:[],date:'',member:'',roleType:'recruiter',dept:''};
+
+/* ════ API KEY ════ */
+/* ════ API KEY ════ */
+function openKeyModal(){
+  var k=localStorage.getItem('taApiKey')||'';
+  document.getElementById('api-key').value=k;
+  document.getElementById('key-modal').style.display='flex';
+  setTimeout(function(){document.getElementById('api-key').focus();},80);
+}
+function closeKeyModal(){
+  document.getElementById('key-modal').style.display='none';
+}
+function saveKeyNow(){
+  var k=document.getElementById('api-key').value.trim();
+  if(!k){toast('Paste your API key first.');return;}
+  if(!k.startsWith('sk-ant')){toast('That doesn\'t look like an Anthropic key (should start with sk-ant…)');return;}
+  localStorage.setItem('taApiKey',k);
+  updateKeyStatus();
+  closeKeyModal();
+  toast('✓ API key saved — ready to upload images');
+}
+function clearKeyNow(){
+  localStorage.removeItem('taApiKey');
+  document.getElementById('api-key').value='';
+  updateKeyStatus();
+  closeKeyModal();
+  toast('Key removed.');
+}
+function updateKeyStatus(){
+  var k=(localStorage.getItem('taApiKey')||'').trim();
+  var el=document.getElementById('key-status');
+  if(!el)return;
+  if(k&&k.startsWith('sk-ant')){
+    el.innerHTML='<span style="background:#f0fdf4;color:#16a34a;padding:2px 10px;border-radius:99px;font-weight:600;">✓ Key saved — AI upload ready</span>';
+  } else {
+    el.innerHTML='<span style="background:#fef2f2;color:#dc2626;padding:2px 10px;border-radius:99px;font-weight:500;">⚠ No key — click Set / Change Key</span>';
+  }
+}
+function toggleKeyVis(){
+  var inp=document.getElementById('api-key'),btn=document.getElementById('key-vis-btn');
+  if(inp.type==='password'){inp.type='text';btn.textContent='Hide';}
+  else{inp.type='password';btn.textContent='Show';}
+}
+function loadKey(){
+  updateKeyStatus();
+}
+function getApiKey(){
+  return (localStorage.getItem('taApiKey')||'').trim();
+}
+
+/* ════ INIT ════ */
+document.addEventListener('DOMContentLoaded',function(){
+  var t=new Date();
+  document.getElementById('sb-today').textContent=fmtD(t);
+  document.getElementById('up-date').value=toIn(t);
+  loadKey();
+  updateSbLast();fillWeekSels();fillMbSels();fillDateSels();renderArchive();
+  schedMidnight();schedFriday();updateSchedUI();
+});
+
+/* ════ NAV ════ */
+function nav(id){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
+  var sec=document.getElementById('s-'+id);if(sec)sec.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(function(i){if((i.getAttribute('onclick')||'').indexOf("'"+id+"'")>-1)i.classList.add('active');});
+  if(id==='report'&&P.rows.length)genReport();
+  if(id==='weekly'){fillWeekSels();renderWeekly();}
+  if(id==='archive')renderArchive();
+  if(id==='compare')fillDateSels();
+  if(id==='schedule')updateSchedUI();
+}
+
+/* ════ DATE ════ */
+function pad(n){return String(n).padStart(2,'0');}
+function toIn(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtD(d){return d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});}
+function fmtLong(s){if(!s)return'';var d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});}
+function fmtShort(s){if(!s)return s;var d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});}
+function wkKey(ds){
+  if(!ds)return'';var d=new Date(ds+'T00:00:00');d.setHours(0,0,0,0);
+  var day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);var mon=new Date(d.setDate(diff));
+  return mon.getFullYear()+'-W'+pad(isoW(mon));
+}
+function isoW(d){
+  var t=new Date(d.valueOf()),dn=(d.getDay()+6)%7;t.setDate(t.getDate()-dn+3);
+  var ft=t.valueOf();t.setMonth(0,1);if(t.getDay()!==4)t.setMonth(0,1+((4-t.getDay()+7)%7));
+  return 1+Math.ceil((ft-t)/604800000);
+}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function n(v){return parseInt(v)||0;}
+
+/* ════ DRAG/DROP ════ */
+var uz=document.getElementById('uz');
+uz.addEventListener('dragover',function(e){e.preventDefault();uz.classList.add('drag');});
+uz.addEventListener('dragleave',function(){uz.classList.remove('drag');});
+uz.addEventListener('drop',function(e){e.preventDefault();uz.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)processFile(f);});
+function handleFile(e){var f=e.target.files[0];if(f)processFile(f);}
+
+/* ════ FILE ROUTING ════ */
+function processFile(file){
+  var name=file.name.toLowerCase();
+  var isImage=file.type.startsWith('image/')||name.match(/\.(png|jpg|jpeg|gif|webp|bmp|tiff|heic)$/);
+  if(isImage){
+    processImageFile(file);
+  } else {
+    // Text/CSV
+    var reader=new FileReader();
+    reader.onload=function(e){parseTextRaw(e.target.result,file.name,null);};
+    reader.readAsText(file);
+  }
+}
+
+/* ════ IMAGE → AI EXTRACTION ════ */
+function processImageFile(file){
+  showThinking('Reading your snapshot with AI…','Extracting role data from the image — this takes a few seconds.');
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var dataUrl=e.target.result;
+    var base64=dataUrl.split(',')[1];
+    var mtype=file.type||'image/png';
+    // Show preview
+    document.getElementById('prev-img-wrap').innerHTML='<img src="'+dataUrl+'" class="preview-img" alt="uploaded snapshot">';
+    document.getElementById('prev-img-wrap').style.display='block';
+    callClaudeVision(base64,mtype,file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function callClaudeVision(base64,mtype,fname){
+  var SYSTEM_PROMPT=`You are a data extraction assistant for a Talent Acquisition team. Extract ALL role rows from the uploaded image and return ONLY raw JSON — no markdown, no backtick fences, no explanation, just the JSON object.
+
+The spreadsheet has these exact column headers (in order):
+GROUP "ROLE DETAILS": Role Title | Location | Hiring Manager | Priority (High/Med/Low) | Start Date | Target Offer Date | Report Date
+GROUP "DAILY ACTIVITY": Headcount | Calendly | Recruiter Screening... | Screened Today | Sourced Today (High Pri.only)
+GROUP "SOURCING": (may be empty or merged)
+GROUP "PIPELINE DEPTH": Interview 1 (F1) | Interview 2 (F2 / N/A) | Final Interview... | Assessment
+GROUP "STAGE TARGET": Stage Target (if applic.)
+GROUP "CONFIDENCE": Confidence (On Track / Uncertain / Delayed)
+GROUP "CALCULATED FIELDS": Total in Stages (Total: 30 or 30 F1...) | Stage Target Met(auto) | Days Remaining (auto)
+
+Return this exact JSON structure with these exact field names:
+{"rows":[{"roleTitle":"","location":"","hm":"","priority":"High|Mid|Low","startDate":"","targetOfferDate":"","reportDate":"","headcount":"","calendly":"","recruiterScreening":"","screenedToday":"","sourcedToday":"","iv1":"","iv2":"","finalIv":"","assessment":"","stageTarget":"","confidence":"On Track|Uncertain|Delayed","totalInStages":"","stageTargetMet":"","daysRemaining":""}],"meta":{"reportDate":"YYYY-MM-DD","recruiter":"","notes":""}}
+
+Rules:
+- Use "" for any field that is empty, blank, or shows a dash
+- For ALL numeric fields use only the number as a string e.g. "3", not "3.0" or "$3"
+- "N/A" cells in iv2 (F2/N/A column) → use "N/A"
+- priority must be exactly "High", "Mid", or "Low" (map "Medium" → "Mid")
+- confidence must be exactly "On Track", "Uncertain", or "Delayed"  
+- stageTargetMet: use "Met ✓" if met, "" if not
+- Extract EVERY data row — do not skip any
+- Return raw JSON only, no markdown fences whatsoever`;
+
+  var apiKey=getApiKey();
+  if(!apiKey){showError('Please enter your Anthropic API key in Step 1 above.');return;}
+  try {
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:SYSTEM_PROMPT,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mtype,data:base64}},
+            {type:'text',text:'Please extract all the role data from this TA snapshot image and return it as JSON exactly as specified.'}
+          ]
+        }]
+      })
+    });
+    if(!resp.ok){
+      var err=await resp.text();
+      showError('API error ('+resp.status+'): '+err.slice(0,200));
+      return;
+    }
+    var data=await resp.json();
+    var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    parseAIResponse(text,fname);
+  } catch(e){
+    showError('Request failed: '+e.message);
+  }
+}
+
+/* ════ TEXT → AI EXTRACTION ════ */
+function parseTextRaw(raw,fname,imageBase64){
+  if(raw.charCodeAt(0)===0xFEFF)raw=raw.slice(1);
+  raw=raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+
+  // Try direct CSV parse first
+  var rows=tryDirectCSV(raw);
+  if(rows&&rows.length>0){
+    P.rows=rows;
+    P.date=document.getElementById('up-date').value||toIn(new Date());
+    P.member=document.getElementById('up-member').value||'Unknown';
+    P.roleType=document.getElementById('up-role').value;
+    showStatus('ng','✓ '+fname+' · '+rows.length+' roles extracted directly from CSV');
+    showPreview(rows,null);
+    return;
+  }
+
+  // Fall back to AI
+  showThinking('Asking AI to read your data…','Parsing non-standard format — this takes a few seconds.');
+  callClaudeText(raw,fname);
+}
+
+async function callClaudeText(raw,fname){
+  var SYSTEM_PROMPT=`You are a data extraction assistant for a Talent Acquisition team. Extract role data from the provided text (CSV, pasted spreadsheet, any format) and return ONLY raw JSON — no markdown, no backtick fences, no explanation, just the JSON:
+{"rows":[{"roleTitle":"","location":"","hm":"","priority":"High|Mid|Low","startDate":"","targetOfferDate":"","reportDate":"","headcount":"","calendly":"","recruiterScreening":"","screenedToday":"","sourcedToday":"","iv1":"","iv2":"","finalIv":"","assessment":"","stageTarget":"","confidence":"On Track|Uncertain|Delayed","totalInStages":"","stageTargetMet":"","daysRemaining":""}],"meta":{"reportDate":"","recruiter":"","notes":""}}
+Rules: use "" for missing fields, numbers only for numeric fields, priority=High/Mid/Low, confidence=On Track/Uncertain/Delayed, extract every role row, return raw JSON only.`;
+
+  var apiKey=getApiKey();
+  if(!apiKey){showError('Please enter your Anthropic API key in Step 1 above.');return;}
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:SYSTEM_PROMPT,
+        messages:[{role:'user',content:'Extract role data from this text:\n\n'+raw.slice(0,8000)}]
+      })
+    });
+    if(!resp.ok){showError('API error ('+resp.status+')');return;}
+    var data=await resp.json();
+    var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    parseAIResponse(text,fname);
+  }catch(e){showError('Request failed: '+e.message);}
+}
+
+/* ════ PARSE AI RESPONSE ════ */
+function extractJSON(text){
+  // Try 1: direct parse
+  try{return JSON.parse(text.trim());}catch(e){}
+  // Try 2: find first { to last }
+  var s=text.indexOf('{'),e=text.lastIndexOf('}');
+  if(s>-1&&e>s){try{return JSON.parse(text.slice(s,e+1));}catch(e2){}}
+  // Try 3: strip ALL backtick fences (any language tag)
+  var stripped=text.replace(/^```[a-zA-Z0-9]*\s*/gm,'').replace(/^```\s*$/gm,'').trim();
+  try{return JSON.parse(stripped);}catch(e3){}
+  // Try 4: find JSON after any text prefix
+  var m=text.match(/(\{[\s\S]*\})/);
+  if(m){try{return JSON.parse(m[1]);}catch(e4){}}
+  return null;
+}
+function parseAIResponse(text,fname){
+  try{
+    var parsed=extractJSON(text);
+    if(!parsed)throw new Error('no JSON found');
+    var rows=parsed.rows||[];
+    var meta=parsed.meta||{};
+
+    if(!rows.length){showError('AI found no role rows in the file. Try a clearer screenshot or pasting the CSV data directly.');return;}
+
+    P.rows=rows;
+    P.date=document.getElementById('up-date').value||(meta.reportDate?meta.reportDate:toIn(new Date()));
+    if(meta.reportDate&&meta.reportDate.length===10&&!document.getElementById('up-date').value){
+      document.getElementById('up-date').value=meta.reportDate;
+    }
+    P.member=document.getElementById('up-member').value||meta.recruiter||'Unknown';
+    if(meta.recruiter&&!document.getElementById('up-member').value){
+      var sel=document.getElementById('up-member');
+      for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===meta.recruiter){sel.value=meta.recruiter;break;}}
+    }
+    P.roleType=document.getElementById('up-role').value;
+    P.dept=document.getElementById('up-dept').value||'';
+
+    var note=rows.length+' roles extracted from '+fname+(meta.notes?' · '+meta.notes:'');
+    showStatus('ng','✓ AI successfully extracted: '+note);
+    showPreview(rows,meta);
+  }catch(e){
+    showError('Could not parse AI response. Raw output: '+text.slice(0,300));
+  }
+}
+
+/* ════ DIRECT CSV PARSE (fast path for clean CSVs) ════ */
+/* Exact column names from the TA Snapshot spreadsheet.
+   Each entry: [canonicalField, [exact header, ...fallbacks in priority order]]
+   Matching is: strip to lowercase alphanum+space, then exact → startsWith → contains */
+var FIELD_PATTERNS=[
+  ['roleTitle',       ['role title']],
+  ['location',        ['location']],
+  ['hm',              ['hiring manager']],
+  ['priority',        ['priority (high/med/low)','priority (high/mid/low)','priority']],
+  ['startDate',       ['start date']],
+  ['targetOfferDate', ['target offer date','target offer']],
+  ['reportDate',      ['report date']],
+  ['headcount',       ['headcount']],
+  ['calendly',        ['calendly']],
+  ['recruiterScreening', ['recruiter screening','recruiter screening...']],
+  ['screenedToday',   ['screened today','screened today...']],
+  ['sourcedToday',    ['sourced today (high pri.only)','sourced today (high pri only)','sourced today','sourced today (high priority only)']],
+  ['iv1',             ['interview 1 (f1)','interview 1','f1']],
+  ['iv2',             ['interview 2 (f2 / n/a)','interview 2 (f2/n/a)','interview 2','f2 / n/a','f2/n/a','f2']],
+  ['finalIv',         ['final interview','final interview...']],
+  ['assessment',      ['assessment']],
+  ['stageTarget',     ['stage target (if applic.)','stage target (if applicable.)','stage target (if applicable)','stage target...','stage target']],
+  ['confidence',      ['confidence (on track / uncertain / delet','confidence (on track / uncertain / delayed)','confidence (on track/uncertain/delayed)','confidence']],
+  ['totalInStages',   ['total in stages (total: 30 or 30 f1...)','total in stages (total:','total in stages','total stages']],
+  ['stageTargetMet',  ['stage target met(auto)','stage target met (auto)','stage target met...','stage target met']],
+  ['daysRemaining',   ['days remaining (auto)','days remaining...','days remaining']]
+];
+function mapH(raw){
+  /* normalise: lowercase, collapse whitespace, keep alphanumeric/spaces/parens/dots/slash */
+  var h=raw.toLowerCase().replace(/[^a-z0-9 ().\/]/g,' ').replace(/\s+/g,' ').trim();
+  for(var i=0;i<FIELD_PATTERNS.length;i++){
+    var f=FIELD_PATTERNS[i][0],kws=FIELD_PATTERNS[i][1];
+    /* 1. exact match */
+    for(var j=0;j<kws.length;j++){if(h===kws[j])return f;}
+  }
+  for(var i=0;i<FIELD_PATTERNS.length;i++){
+    var f=FIELD_PATTERNS[i][0],kws=FIELD_PATTERNS[i][1];
+    /* 2. header starts with keyword (catches truncated column names like "Recruiter Screening...") */
+    for(var j=0;j<kws.length;j++){if(kws[j].length>=6&&h.indexOf(kws[j])===0)return f;}
+  }
+  for(var i=0;i<FIELD_PATTERNS.length;i++){
+    var f=FIELD_PATTERNS[i][0],kws=FIELD_PATTERNS[i][1];
+    /* 3. keyword starts with header (header is a truncation of the known keyword) */
+    for(var j=0;j<kws.length;j++){if(h.length>=6&&kws[j].indexOf(h)===0)return f;}
+  }
+  for(var i=0;i<FIELD_PATTERNS.length;i++){
+    var f=FIELD_PATTERNS[i][0],kws=FIELD_PATTERNS[i][1];
+    /* 4. contains — only for keywords ≥10 chars to avoid false matches */
+    for(var j=0;j<kws.length;j++){if(kws[j].length>=10&&h.indexOf(kws[j])>-1)return f;}
+  }
+  return null;
+}
+function detectDelim(line){
+  var c={',':0,'\t':0,';':0,'|':0};
+  for(var i=0;i<line.length;i++){if(c[line[i]]!==undefined)c[line[i]]++;}
+  return Object.keys(c).reduce(function(a,b){return c[a]>=c[b]?a:b;});
+}
+function splitL(line,d){
+  if(d==='\t')return line.split('\t').map(function(c){return c.trim();});
+  var out=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===d&&!inQ){out.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  out.push(cur.trim());return out;
+}
+function tryDirectCSV(raw){
+  var lines=raw.split('\n').filter(function(l){return l.trim();});
+  if(lines.length<2)return null;
+  var delim=detectDelim(lines[0]);
+  var hi=-1;
+  for(var i=0;i<Math.min(8,lines.length);i++){
+    if(splitL(lines[i],delim).length>3){hi=i;break;}
+  }
+  if(hi===-1)return null;
+  var hdrs=splitL(lines[hi],delim);
+  var ci={};
+  hdrs.forEach(function(h,idx){var f=mapH(h);if(f&&ci[f]===undefined)ci[f]=idx;});
+  if(Object.keys(ci).length<3)return null;
+  var rows=[];
+  for(var r=hi+1;r<lines.length;r++){
+    var cells=splitL(lines[r],delim);
+    if(cells.every(function(c){return!c.trim();}))continue;
+    var row={};
+    Object.keys(ci).forEach(function(f){row[f]=(cells[ci[f]]||'').trim();});
+    if(!row.roleTitle){for(var c=0;c<cells.length;c++){if(cells[c].trim().length>1){row.roleTitle=cells[c].trim();break;}}}
+    if(!row.roleTitle)continue;
+    rows.push(row);
+  }
+  return rows.length>0?rows:null;
+}
+
+/* ════ UI HELPERS ════ */
+function showThinking(msg,sub){
+  document.getElementById('ai-status').innerHTML=
+    '<div class="ai-thinking"><div class="ai-spinner"></div><div><div class="ai-msg">'+escH(msg)+'</div><div class="ai-sub">'+escH(sub)+'</div></div></div>';
+}
+function showStatus(cls,msg){
+  document.getElementById('ai-status').innerHTML='<div class="notice '+cls+'">'+escH(msg)+'</div>';
+}
+function showError(msg){
+  document.getElementById('ai-status').innerHTML='<div class="notice nr">'+escH(msg)+'</div>';
+}
+function showPreview(rows,meta){
+  document.getElementById('preview-card').style.display='block';
+  document.getElementById('prev-count').textContent=rows.length+' roles found';
+  if(meta&&meta.notes)document.getElementById('prev-note').textContent=meta.notes;
+
+  /* Exact columns in spreadsheet order, with group colours */
+  var COLS=[
+    {f:'roleTitle',       l:'Role Title',           g:'gr'},
+    {f:'location',        l:'Location',              g:'gr'},
+    {f:'hm',              l:'Hiring Manager',        g:'gr'},
+    {f:'priority',        l:'Priority',              g:'gr'},
+    {f:'startDate',       l:'Start Date',            g:'gr'},
+    {f:'targetOfferDate', l:'Target Offer Date',     g:'gr'},
+    {f:'reportDate',      l:'Report Date',           g:'gr'},
+    {f:'headcount',       l:'Headcount',             g:'gd'},
+    {f:'calendly',        l:'Calendly',              g:'gd'},
+    {f:'recruiterScreening',l:'Recruiter Screening', g:'gd'},
+    {f:'screenedToday',   l:'Screened Today',        g:'gd'},
+    {f:'sourcedToday',    l:'Sourced Today (Hi Pri)', g:'gd'},
+    {f:'iv1',             l:'Interview 1 (F1)',       g:'gp'},
+    {f:'iv2',             l:'Interview 2 (F2/N/A)',   g:'gp'},
+    {f:'finalIv',         l:'Final Interview',        g:'gp'},
+    {f:'assessment',      l:'Assessment',             g:'gp'},
+    {f:'stageTarget',     l:'Stage Target (if applic.)', g:'gs'},
+    {f:'confidence',      l:'Confidence',             g:'gn'},
+    {f:'totalInStages',   l:'Total in Stages',        g:'gc'},
+    {f:'stageTargetMet',  l:'Stage Target Met',       g:'gc'},
+    {f:'daysRemaining',   l:'Days Remaining',         g:'gc'}
+  ];
+  /* Only show columns that have at least one non-empty value */
+  var visible=COLS.filter(function(c){return rows.some(function(r){return r[c.f]&&r[c.f]!=='';});});
+
+  var h='<div style="overflow-x:auto;"><table><thead><tr>';
+  visible.forEach(function(c){h+='<th class="'+c.g+'">'+escH(c.l)+'</th>';});
+  h+='</tr></thead><tbody>';
+  rows.slice(0,30).forEach(function(row){
+    h+='<tr>'+visible.map(function(c){
+      var v=row[c.f]||'';
+      if(c.f==='priority'){var pl=v.toLowerCase();return'<td><span class="badge '+(pl==='high'?'bh':pl==='low'?'bl':'bm')+'">'+escH(v||'—')+'</span></td>';}
+      if(c.f==='confidence'){var vc=v.toLowerCase();var cc=vc.indexOf('track')>-1?'bg':vc.indexOf('uncertain')>-1?'ba':vc.indexOf('delay')>-1?'br':'';return'<td>'+(cc&&v?'<span class="badge '+cc+'">'+escH(v)+'</span>':escH(v||'—'))+'</td>';}
+      if(c.f==='stageTargetMet'){return'<td>'+(v?'<span class="badge bg">'+escH(v)+'</span>':escH('—'))+'</td>';}
+      return'<td>'+escH(v||'—')+'</td>';
+    }).join('')+'</tr>';
+  });
+  if(rows.length>30)h+='<tr><td colspan="'+visible.length+'" style="text-align:center;color:var(--text3);font-style:italic;padding:10px;">…and '+(rows.length-30)+' more rows</td></tr>';
+  h+='</tbody></table></div>';
+  document.getElementById('prev-tbl').innerHTML=h;
+}
+function clearUp(){
+  P={rows:[],date:'',member:'',roleType:'recruiter',dept:''};
+  document.getElementById('preview-card').style.display='none';
+  document.getElementById('prev-img-wrap').style.display='none';
+  document.getElementById('ai-status').innerHTML='';
+  document.getElementById('file-in').value='';
+}
+function processUpload(){
+  if(!P.rows.length){toast('No data — upload a file or paste data first.');return;}
+  P.date=document.getElementById('up-date').value||toIn(new Date());
+  P.member=document.getElementById('up-member').value||'Unknown';
+  P.roleType=document.getElementById('up-role').value;
+  P.dept=document.getElementById('up-dept').value||'';
+  updateSbLast();fillMbSels();nav('report');genReport();
+}
+
+/* ════ SNAP COMPUTE ════ */
+function computeSnap(rows){
+  var s={totalRoles:rows.length,recruiting:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,priHigh:0,priMid:0,priLow:0,onTrack:0,uncertain:0,delayed:0,stageMet:0};
+  rows.forEach(function(r){
+    var p=(r.priority||'').toLowerCase();
+    if(p==='high')s.priHigh++;else if(p==='low')s.priLow++;else s.priMid++;
+    s.recruiting+=n(r.recruiterScreening);s.screenedToday+=n(r.screenedToday);s.sourcedToday+=n(r.sourcedToday);s.calendly+=n(r.calendly);
+    s.iv1+=n(r.iv1);s.iv2+=n(r.iv2);s.finalIv+=n(r.finalIv);s.assessment+=n(r.assessment);
+    var tis=n(r.totalInStages)||(n(r.iv1)+n(r.iv2)+n(r.finalIv)+n(r.assessment));s.totalInStages+=tis;
+    var conf=(r.confidence||'').toLowerCase();
+    if(conf.indexOf('track')>-1)s.onTrack++;else if(conf.indexOf('uncertain')>-1)s.uncertain++;else if(conf.indexOf('delay')>-1)s.delayed++;
+    var met=(r.stageTargetMet||'').toLowerCase();
+    if(met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true')s.stageMet++;
+  });
+  return s;
+}
+
+/* ════ MEMBER COLORS ════ */
+var MCOLS={'Kartikey':'#6c63ff','Gloria':'#16a34a','Vipul':'#0891b2','Gaurav':'#d97706'};
+var MC=['#6c63ff','#16a34a','#0891b2','#d97706','#dc2626','#7c3aed'];
+function mCol(name){return MCOLS[name]||(function(n){var h=0;for(var i=0;i<n.length;i++){h=((h<<5)-h)+n.charCodeAt(i);h|=0;}return MC[Math.abs(h)%MC.length];})(name);}
+
+/* ════ GENERATE REPORT — PDF FORMAT ════ */
+function dv(v){/* display value: blank/dash → — */var s=String(v||'').trim();return(s===''||s==='0'||s==='-')?'—':s;}
+function dc(v){/* delta cell */var s=String(v||'').trim();if(!s||s==='0'||s==='—'||s==='-')return'<span style="color:#aaa;">—</span>';var num=parseInt(s);if(!isNaN(num)){return num>0?'<span style="color:#16a34a;font-weight:600;">+'+num+'</span>':num<0?'<span style="color:#dc2626;font-weight:600;">'+num+'</span>':'<span style="color:#aaa;">—</span>';}return'<span style="color:#aaa;">'+escH(s)+'</span>';}
+function pBadge(v){var p=(v||'').toLowerCase();return'<span class="badge '+(p==='high'?'bh':p==='low'?'bl':'bm')+'" style="font-size:10px;">'+(p==='high'?'High':p==='low'?'Low':'Mid')+'</span>';}
+function confBadge(v){var c=(v||'').toLowerCase();var cls=c.indexOf('track')>-1?'bg':c.indexOf('uncertain')>-1?'ba':c.indexOf('delay')>-1?'br':'';return cls&&v?'<span class="badge '+cls+'" style="font-size:10px;">'+escH(v)+'</span>':'<span style="color:#aaa;">—</span>';}
+function metBadge(v){var m=(v||'').toLowerCase();if(m.indexOf('met')>-1||m==='yes'||m==='✓'||m==='true')return'<span style="color:#16a34a;font-weight:700;">Met ✓</span>';if(m&&m!=='—'&&m!=='')return'<span style="color:#d97706;font-size:10px;">'+escH(v)+'</span>';return'<span style="color:#aaa;">—</span>';}
+
+function genReport(){
+  if(!P.rows.length){document.getElementById('rpt-wrap').innerHTML='<div class="empty">Upload a snapshot to generate your daily report.</div>';return;}
+
+  var snap=computeSnap(P.rows);
+  var col=mCol(P.member);
+  var reportDate=P.date||toIn(new Date());
+  var reportDateFmt=fmtLong(reportDate);
+
+  /* Group rows by HM */
+  var hmOrder=[],hmMap={};
+  P.rows.forEach(function(r){
+    var hm=r.hm||'Unknown';
+    if(!hmMap[hm]){hmMap[hm]=[];hmOrder.push(hm);}
+    hmMap[hm].push(r);
+  });
+
+  /* High-priority roles for sourcing section */
+  var highRows=P.rows.filter(function(r){return(r.priority||'').toLowerCase()==='high';});
+
+  var H='<div id="report-card" style="background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">';
+
+  /* ── HEADER ── */
+  H+='<div style="background:'+col+';color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:flex-start;">';
+  H+='<div><div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:3px;">Daily Talent Acquisition Report</div>';
+  H+='<div style="font-size:22px;font-weight:800;letter-spacing:-.02em;">'+escH(P.member)+'</div>';
+  H+='<div style="font-size:13px;opacity:.75;margin-top:3px;">'+escH(reportDateFmt)+(P.dept?'&nbsp;·&nbsp;<span style="background:rgba(255,255,255,0.18);padding:2px 10px;border-radius:99px;font-size:12px;">'+escH(P.dept)+'</span>':'')+'</div></div>';
+  H+='<div style="text-align:right;font-size:12px;opacity:.75;line-height:2;">'+escH(P.member.toUpperCase()+' OVERVIEW')+' · '+escH((new Date(reportDate+'T00:00:00')).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}).toUpperCase())+'</div></div>';
+
+  /* ── OVERVIEW TILES ── */
+  H+='<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid #e4e2da;">';
+  [
+    {l:'Open roles',v:snap.totalRoles,sub:snap.totalRoles+' HC'},
+    {l:'Screened today',v:snap.screenedToday,sub:snap.screenedToday+' today'},
+    {l:'Total in interview stages',v:snap.totalInStages,sub:snap.totalInStages+' / '+(snap.totalInStages+snap.assessment||snap.totalInStages)},
+    {l:'Roles meeting stage target',v:snap.stageMet+' / '+snap.totalRoles,sub:Math.round(snap.stageMet/Math.max(snap.totalRoles,1)*100)+'%'},
+    {l:'Confidence split',v:'',sub:''},
+    {l:'',v:'',sub:''}
+  ].forEach(function(t,i){
+    if(i===4){
+      H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Confidence split</div>';
+      H+='<div style="display:flex;gap:12px;align-items:flex-end;">';
+      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#16a34a;">'+snap.onTrack+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">On track</div></div>';
+      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#d97706;">'+snap.uncertain+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Uncertain</div></div>';
+      H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:#dc2626;">'+snap.delayed+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Delayed</div></div>';
+      H+='</div></div>';
+    } else if(i===5){
+      H+='<div style="padding:14px 10px;background:#f5f4f0;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Priority split</div>';
+      H+='<div><span class="badge bh" style="margin-bottom:4px;display:inline-block;">High: '+snap.priHigh+'</span><br>';
+      H+='<span class="badge bm" style="margin-bottom:4px;display:inline-block;">Mid: '+snap.priMid+'</span><br>';
+      H+='<span class="badge bl" style="display:inline-block;">Low: '+snap.priLow+'</span></div></div>';
+    } else {
+      H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;">';
+      H+='<div style="font-size:26px;font-weight:800;color:'+col+';line-height:1;">'+escH(String(t.v))+'</div>';
+      H+='<div style="font-size:10px;font-weight:600;color:#888;text-transform:uppercase;margin-top:4px;line-height:1.4;">'+escH(t.l)+'</div>';
+      if(t.sub)H+='<div style="font-size:11px;color:#aaa;margin-top:3px;">'+escH(t.sub)+'</div>';
+      H+='</div>';
+    }
+  });
+  H+='</div>';
+
+  /* ── CONFIDENCE KEY ── */
+  H+='<div style="background:#fffbeb;border-bottom:1px solid #e4e2da;padding:8px 16px;font-size:10px;color:#92400e;line-height:1.7;">';
+  H+='<strong>CONFIDENCE KEY</strong>&nbsp; ';
+  H+='<strong style="color:#16a34a;">On track</strong> — ≥6 in stages or ≥2 at Final; activity consistent with pace needed to hit offer date&nbsp;&nbsp;';
+  H+='<strong style="color:#d97706;">Uncertain</strong> — pipeline building but depth or pace below what is needed; outcome possible, not assured&nbsp;&nbsp;';
+  H+='<strong style="color:#dc2626;">Delayed</strong> — insufficient depth and/or activity; current trajectory will not meet target offer date without intervention';
+  H+='</div>';
+
+  /* ── PER-HM SECTIONS ── */
+  hmOrder.forEach(function(hm){
+    var rows=hmMap[hm];
+    var hmSnap={met:0,onTrack:0,uncertain:0,delayed:0,scrTot:0,assTot:0,iv1Tot:0,iv2Tot:0,finTot:0,stagesTot:0};
+    rows.forEach(function(r){
+      var met=(r.stageTargetMet||'').toLowerCase();
+      if(met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true')hmSnap.met++;
+      var conf=(r.confidence||'').toLowerCase();
+      if(conf.indexOf('track')>-1)hmSnap.onTrack++;else if(conf.indexOf('uncertain')>-1)hmSnap.uncertain++;else if(conf.indexOf('delay')>-1)hmSnap.delayed++;
+      hmSnap.scrTot+=n(r.screenedToday);hmSnap.assTot+=n(r.assessment);hmSnap.iv1Tot+=n(r.iv1);hmSnap.iv2Tot+=n(r.iv2);hmSnap.finTot+=n(r.finalIv);
+      hmSnap.stagesTot+=n(r.totalInStages)||(n(r.iv1)+n(r.iv2)+n(r.finalIv)+n(r.assessment));
+    });
+
+    /* HM header bar */
+    var initials=hm.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    H+='<div style="background:#1a1a18;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:2px solid '+col+';">';
+    H+='<div style="width:32px;height:32px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escH(initials)+'</div>';
+    H+='<div><div style="font-size:14px;font-weight:700;">'+escH(hm)+'</div>';
+    H+='<div style="font-size:11px;opacity:.6;">'+rows.length+' role'+(rows.length!==1?'s':'')+' &nbsp;·&nbsp; '+hmSnap.met+' of '+rows.length+' stage target met</div></div>';
+    H+='<div style="margin-left:auto;display:flex;gap:12px;font-size:12px;">';
+    if(hmSnap.onTrack)H+='<span style="color:#4ade80;">'+hmSnap.onTrack+' on track</span>';
+    if(hmSnap.uncertain)H+='<span style="color:#fbbf24;">'+hmSnap.uncertain+' uncertain</span>';
+    if(hmSnap.delayed)H+='<span style="color:#f87171;">'+hmSnap.delayed+' delayed</span>';
+    H+='</div></div>';
+
+    /* Role table */
+    H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    /* Column header row — matches PDF exactly */
+    H+='<thead>';
+    H+='<tr style="background:#f5f4f0;">';
+    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;min-width:160px;">Role</th>';
+    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Priority</th>';
+    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;text-align:center;">Days Left</th>';
+    /* Paired columns: Today + ±  */
+    var pairCols=[
+      {l:'Screened',bg:'#f0fdf4',tc:'#166534'},
+      {l:'Assessment',bg:'#f0fdf4',tc:'#166534'},
+      {l:'F1',bg:'#f5f3ff',tc:'#5b21b6'},
+      {l:'F2',bg:'#f5f3ff',tc:'#5b21b6'},
+      {l:'Final',bg:'#f5f3ff',tc:'#5b21b6'},
+      {l:'In Stages',bg:'#fdf4ff',tc:'#7e22ce'}
+    ];
+    pairCols.forEach(function(c){
+      H+='<th colspan="2" style="padding:4px 8px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:'+c.tc+';background:'+c.bg+';white-space:nowrap;">'+c.l+'</th>';
+    });
+    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#9a3412;background:#fff7ed;white-space:nowrap;">Target Met</th>';
+    H+='<th style="padding:5px 8px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#065f46;background:#ecfdf5;">Confidence</th>';
+    H+='</tr>';
+    /* Sub-header: Today / ± labels */
+    H+='<tr style="background:#fafaf8;">';
+    H+='<th style="border-bottom:1px solid #e4e2da;"></th><th style="border-bottom:1px solid #e4e2da;"></th><th style="border-bottom:1px solid #e4e2da;"></th>';
+    pairCols.forEach(function(c){
+      H+='<th style="padding:2px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#888;background:'+c.bg+';">Today</th>';
+      H+='<th style="padding:2px 6px;border-bottom:1px solid #e4e2da;text-align:center;font-size:9px;color:#aaa;background:'+c.bg+';">+/−</th>';
+    });
+    H+='<th style="border-bottom:1px solid #e4e2da;background:#fff7ed;"></th>';
+    H+='<th style="border-bottom:1px solid #e4e2da;background:#ecfdf5;"></th>';
+    H+='</tr>';
+    H+='</thead><tbody>';
+
+    /* Data rows */
+    var scrSum=0,assSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
+    rows.forEach(function(r){
+      var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv),stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
+      scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
+      var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
+      var drV=parseInt(r.daysRemaining)||0;var drS=drV<0?'color:#dc2626;font-weight:600':drV>0&&drV<4?'color:#d97706;font-weight:600':'';
+      H+='<tr style="border-bottom:1px solid #f0efeb;">';
+      H+='<td style="padding:6px 8px;font-weight:500;">';
+      H+=escH(r.roleTitle||'—');
+      if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
+      if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
+      H+='</td>';
+      H+='<td style="padding:6px 8px;white-space:nowrap;">'+pBadge(r.priority)+'</td>';
+      H+='<td style="padding:6px 8px;text-align:center;'+drS+'font-size:11px;">'+escH(dv(r.daysRemaining))+'</td>';
+      /* Screened */
+      H+='<td style="padding:6px 8px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#f9fff9;font-size:10px;">'+dc(r.screenedDelta||0)+'</td>';
+      /* Assessment */
+      var iv2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(assV);
+      H+='<td style="padding:6px 8px;text-align:center;background:#f9fff9;">'+iv2disp+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#f9fff9;font-size:10px;">'+dc(0)+'</td>';
+      /* F1 */
+      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+dv(iv1V)+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      /* F2 */
+      var f2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(iv2V);
+      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+f2disp+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      /* Final */
+      H+='<td style="padding:6px 8px;text-align:center;background:#faf9ff;">'+dv(finV)+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#faf9ff;font-size:10px;">'+dc(0)+'</td>';
+      /* In Stages */
+      H+='<td style="padding:6px 8px;text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+dv(stgV)+'</td>';
+      H+='<td style="padding:6px 6px;text-align:center;background:#fdf8ff;font-size:10px;">'+dc(0)+'</td>';
+      /* Met */
+      H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;">'+metBadge(r.stageTargetMet)+'</td>';
+      /* Confidence */
+      H+='<td style="padding:6px 8px;text-align:center;background:#ecfdf5;">'+confBadge(r.confidence)+'</td>';
+      H+='</tr>';
+    });
+
+    /* Totals row */
+    H+='<tr style="background:#f5f4f0;font-weight:700;border-top:2px solid #e4e2da;">';
+    H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;">Total · '+escH(hm)+'</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+scrSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+assSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+iv1Sum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+iv2Sum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+finSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td style="padding:5px 8px;text-align:center;color:#7e22ce;">'+stgSum+'</td><td style="padding:5px 4px;text-align:center;font-size:9px;color:#aaa;">—</td>';
+    H+='<td></td><td></td></tr>';
+    H+='</tbody></table></div>';
+  });
+
+  /* ── SOURCING ACTIVITY — HIGH PRIORITY ── */
+  if(highRows.length){
+    H+='<div style="margin-top:2px;border-top:2px solid #e4e2da;">';
+    H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">';
+    H+='Sourcing Activity · High Priority Roles · '+escH(P.member.toUpperCase())+'</div>';
+    H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    H+='<thead><tr style="background:#f5f4f0;">';
+    H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Role</th>';
+    H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">HM</th>';
+    H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;font-size:9px;font-weight:700;text-transform:uppercase;color:#888;">Location</th>';
+    H+='<th style="padding:5px 10px;border-bottom:2px solid #e4e2da;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:#db2777;">Today</th>';
+    H+='</tr></thead><tbody>';
+    highRows.forEach(function(r){
+      var src=dv(r.sourcedToday);
+      H+='<tr style="border-bottom:1px solid #f0efeb;">';
+      H+='<td style="padding:6px 10px;font-weight:500;">'+escH(r.roleTitle||'—')+'</td>';
+      H+='<td style="padding:6px 10px;color:#555;">'+escH(r.hm||'—')+'</td>';
+      H+='<td style="padding:6px 10px;color:#555;">'+escH(r.location||'—')+'</td>';
+      H+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#db2777;">'+src+'</td>';
+      H+='</tr>';
+    });
+    H+='</tbody></table></div></div>';
+  }
+
+  /* ── FUNNEL DEPTH ── */
+  H+='<div style="border-top:2px solid #e4e2da;display:grid;grid-template-columns:1fr;">';
+  H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Funnel Depth · Today · All Roles Combined</div>';
+  H+='<div style="padding:16px 20px;">';
+  var funnelRows=[
+    {l:'Screened today',v:snap.screenedToday},
+    {l:'Assessment',v:snap.assessment},
+    {l:'Interview 1 (F1)',v:snap.iv1},
+    {l:'Interview 2 (F2)',v:snap.iv2},
+    {l:'Final interview',v:snap.finalIv},
+    {l:'Total in stages',v:snap.totalInStages,bold:true}
+  ];
+  var maxV=Math.max.apply(null,funnelRows.map(function(f){return f.v;}));
+  funnelRows.forEach(function(f){
+    var pct=maxV>0?Math.round(f.v/maxV*100):0;
+    H+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
+    H+='<div style="min-width:160px;font-size:12px;'+(f.bold?'font-weight:700;color:#1a1a18;':'color:#555;')+'">'+escH(f.l)+'</div>';
+    H+='<div style="flex:1;background:#f0efeb;border-radius:4px;height:18px;overflow:hidden;">';
+    H+='<div style="background:'+(f.bold?col:'#94a3b8')+';height:100%;width:'+pct+'%;border-radius:4px;transition:width .3s;"></div></div>';
+    H+='<div style="min-width:36px;text-align:right;font-size:13px;font-weight:'+(f.bold?'800':'600')+';color:'+(f.bold?col:'#1a1a18')+';">'+f.v+'</div>';
+    H+='</div>';
+  });
+  H+='</div></div>';
+
+  /* ── FOOTER ── */
+  H+='<div style="background:#f5f4f0;border-top:1px solid #e4e2da;padding:8px 16px;display:flex;justify-content:space-between;">';
+  H+='<span style="font-size:10px;color:#888;">ManifestGlobal Talent Acquisition · Daily Report to Department HOD</span>';
+  H+='<span style="font-size:10px;color:#888;">'+escH(P.member)+' · '+escH(reportDateFmt)+'</span></div>';
+  H+='</div>';
+
+  document.getElementById('rpt-wrap').innerHTML=H;
+}
+
+/* ════ SAVE / LOAD ════ */
+function saveRecord(){
+  if(!P.rows.length){toast('No data to save.');return;}
+  var date=P.date||toIn(new Date());
+  var all=ls().filter(function(r){return!(r.date===date&&r.member===P.member);});
+  var rec={date:date,member:P.member,roleType:P.roleType,dept:P.dept,weekKey:wkKey(date),savedAt:new Date().toISOString(),snap:computeSnap(P.rows),rows:P.rows.slice()};
+  all.push(rec);all.sort(function(a,b){return a.date>b.date?1:-1;});ss(all);
+  var m=lm();m.lastSaved=new Date().toISOString();sm(m);
+  fillWeekSels();fillMbSels();fillDateSels();renderArchive();updateSbLast();
+  toast('✓ Saved: '+date+' · '+P.member);
+}
+function updateSbLast(){var all=ls(),el=document.getElementById('sb-last');if(!el)return;if(all.length){var l=all[all.length-1];el.textContent='Last: '+l.date+' ('+l.member+')';}else el.textContent='No records yet';}
+function fillWeekSels(){
+  var all=ls(),wks=[];var seen={};all.forEach(function(r){if(r.weekKey&&!seen[r.weekKey]){seen[r.weekKey]=1;wks.push(r.weekKey);}});wks.sort().reverse();
+  var s=document.getElementById('wk-sel');if(!s)return;var prev=s.value;
+  s.innerHTML=wks.length?wks.map(function(w){return'<option value="'+escH(w)+'">'+escH(w)+'</option>';}).join(''):'<option value="">No records yet</option>';
+  if(prev&&wks.indexOf(prev)>-1)s.value=prev;
+}
+function fillMbSels(){
+  var mb={};ls().forEach(function(r){mb[r.member]=1;});if(P.member)mb[P.member]=1;
+  var mbs=Object.keys(mb).sort();var base='<option value="all">All members</option>';
+  ['arc-mb'].forEach(function(id){var s=document.getElementById(id);if(s)s.innerHTML=base+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');});
+}
+function fillDateSels(){
+  var dates=ls().map(function(r){return r.date;}).sort().reverse();
+  ['cmp-from','cmp-to'].forEach(function(id,i){
+    var s=document.getElementById(id);if(!s)return;
+    s.innerHTML='<option value="">— select</option>'+dates.map(function(d){return'<option value="'+escH(d)+'">'+escH(fmtShort(d))+' — '+escH(fmtLong(d))+'</option>';}).join('');
+    if(dates[i])s.value=dates[i];
+  });
+}
+
+/* ════ ARCHIVE ════ */
+function renderArchive(){
+  var all=ls();
+  var q=(document.getElementById('arc-q')||{value:''}).value.toLowerCase();
+  var mf=(document.getElementById('arc-mb')||{value:'all'}).value;
+  var fil=all.filter(function(r){return(mf==='all'||r.member===mf)&&(!q||(r.date+' '+r.member).toLowerCase().indexOf(q)>-1);}).reverse();
+  var tb=document.getElementById('arc-body');if(!tb)return;
+  if(!fil.length){tb.innerHTML='<tr><td colspan="17"><div class="empty">No records.</div></td></tr>';return;}
+  tb.innerHTML=fil.map(function(r){
+    var s=r.snap||{};
+    return'<tr><td style="font-weight:500;white-space:nowrap;">'+escH(r.date)+'</td>'
+    +'<td><span style="color:'+mCol(r.member)+';font-weight:600;">'+escH(r.member)+'</span></td>'
+    +'<td style="font-size:11px;color:var(--text3);">'+escH(r.dept||'—')+'</td>'
+    +'<td><span class="badge bb">'+escH(r.roleType||'rec')+'</span></td>'
+    +'<td style="text-align:center;">'+s.screenedToday+'</td><td style="text-align:center;">'+s.sourcedToday+'</td><td style="text-align:center;">'+s.calendly+'</td>'
+    +'<td style="text-align:center;">'+s.iv1+'</td><td style="text-align:center;">'+s.iv2+'</td><td style="text-align:center;">'+s.finalIv+'</td><td style="text-align:center;">'+s.assessment+'</td>'
+    +'<td style="text-align:center;font-weight:700;color:#7e22ce;">'+s.totalInStages+'</td>'
+    +'<td><span class="badge bg">'+s.onTrack+'</span></td><td><span class="badge ba">'+s.uncertain+'</span></td><td><span class="badge br">'+s.delayed+'</span></td>'
+    +'<td><span class="badge bp">'+(s.stageMet||0)+'</span></td><td>'+s.totalRoles+'</td>'
+    +'<td style="white-space:nowrap;"><button class="btn btn-sm" onclick="loadRec(\''+escH(r.date)+'\',\''+escH(r.member)+'\')">Load</button> <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);" onclick="delRec(\''+escH(r.date)+'\',\''+escH(r.member)+'\')">Del</button></td></tr>';
+  }).join('');
+}
+function loadRec(date,member){
+  var rec=ls().find(function(r){return r.date===date&&r.member===member;});if(!rec){toast('Not found.');return;}
+  P={rows:rec.rows||[],date:rec.date,member:rec.member,roleType:rec.roleType||'recruiter',dept:rec.dept||''};
+  document.getElementById('up-date').value=rec.date;
+  document.getElementById('up-member').value=rec.member;
+  document.getElementById('up-dept').value=rec.dept||'';
+  nav('report');genReport();toast('Loaded: '+date+' · '+member);
+}
+function delRec(date,member){if(!confirm('Delete?'))return;ss(ls().filter(function(r){return!(r.date===date&&r.member===member);}));fillWeekSels();fillMbSels();renderArchive();toast('Deleted.');}
+
+/* ════ COMPARE ════ */
+function runCmp(){
+  var f=document.getElementById('cmp-from').value,t=document.getElementById('cmp-to').value;
+  if(!f||!t){toast('Select both dates.');return;}
+  var all=ls();var r1=all.find(function(r){return r.date===f;}),r2=all.find(function(r){return r.date===t;});
+  if(!r1||!r2){toast('Record not found.');return;}
+  var s1=r1.snap||{},s2=r2.snap||{};
+  var h='<div class="card"><div class="ct" style="margin-bottom:12px;">Snapshot Delta — <span style="font-weight:400;color:var(--text3);">'+escH(fmtShort(f))+' → '+escH(fmtShort(t))+'</span></div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:8px;">';
+  [{l:'Open Roles',a:s1.totalRoles,b:s2.totalRoles},{l:'Rec. Screen',a:s1.recruiting,b:s2.recruiting},{l:'Screened',a:s1.screenedToday,b:s2.screenedToday},{l:'Sourced',a:s1.sourcedToday,b:s2.sourcedToday},{l:'Calendly',a:s1.calendly,b:s2.calendly},{l:'IV1',a:s1.iv1,b:s2.iv1},{l:'IV2',a:s1.iv2,b:s2.iv2},{l:'Final',a:s1.finalIv,b:s2.finalIv},{l:'Total Stages',a:s1.totalInStages,b:s2.totalInStages}].forEach(function(m){
+    var d=m.b-m.a,cl=d>0?'color:var(--green);':d<0?'color:var(--red);':'color:var(--text3);',ds=d===0?'±0':(d>0?'+':'')+d;
+    h+='<div style="background:var(--bg2);border-radius:8px;padding:11px 10px;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">'+m.l+'</div><div style="font-size:22px;font-weight:700;">'+m.b+'</div><div style="font-size:11px;'+cl+'">'+ds+'</div></div>';
+  });
+  h+='</div></div>';
+  document.getElementById('cmp-wrap').innerHTML=h;
+}
+
+/* ════ WEEKLY ════ */
+function renderWeekly(){
+  var wk=(document.getElementById('wk-sel')||{value:''}).value;
+  var all=ls().filter(function(r){return r.weekKey===wk;});
+  var wrap=document.getElementById('weekly-wrap');
+  if(!all.length){wrap.innerHTML='<div class="empty">No records for this week.</div>';return;}
+  var byM={};all.forEach(function(r){if(!byM[r.member])byM[r.member]={recs:[],col:mCol(r.member)};byM[r.member].recs.push(r);});
+  wrap.innerHTML=Object.keys(byM).sort().map(function(member){
+    var mg=byM[member],recs=mg.recs.sort(function(a,b){return a.date>b.date?1:-1;}),col=mg.col;
+    var wt={roles:0,rec:0,scr:0,src:0,cal:0,iv1:0,iv2:0,fin:0,ass:0,tot:0,onT:0,unc:0,del:0,met:0};
+    recs.forEach(function(r){var s=r.snap||{};wt.roles=Math.max(wt.roles,s.totalRoles||0);wt.rec+=s.recruiting||0;wt.scr+=s.screenedToday||0;wt.src+=s.sourcedToday||0;wt.cal+=s.calendly||0;wt.iv1+=s.iv1||0;wt.iv2+=s.iv2||0;wt.fin+=s.finalIv||0;wt.ass+=s.assessment||0;wt.tot+=s.totalInStages||0;wt.onT+=s.onTrack||0;wt.unc+=s.uncertain||0;wt.del+=s.delayed||0;wt.met+=s.stageMet||0;});
+    var h='<div class="wmc" style="border-top:3px solid '+col+'">';
+    h+='<div class="wmh"><div class="wava" style="background:'+col+'">'+member[0]+'</div>';
+    h+='<div><div class="wmn">'+escH(member)+'</div><div class="wms">'+recs.length+' day'+(recs.length!==1?'s':'')+' · '+escH(wk)+'</div></div>';
+    h+='<div style="margin-left:auto;display:flex;gap:5px;">'+recs.map(function(r){return'<span style="background:var(--bg2);padding:2px 8px;border-radius:4px;font-size:11px;">'+escH(fmtShort(r.date))+'</span>';}).join('')+'</div></div>';
+    h+='<div class="wt-grid" style="grid-template-columns:repeat(9,1fr);">';
+    [{l:'Open Roles',v:wt.roles,c:col},{l:'Rec.Screen',v:wt.rec,c:'#7c3aed'},{l:'Screened',v:wt.scr,c:'#0891b2'},{l:'Sourced',v:wt.src,c:'#db2777'},{l:'Calendly',v:wt.cal,c:'#16a34a'},{l:'IV1',v:wt.iv1,c:'#d97706'},{l:'IV2',v:wt.iv2,c:'#ea580c'},{l:'Final',v:wt.fin,c:'#2563eb'},{l:'Total Stages',v:wt.tot,c:'#6d28d9'}].forEach(function(t){
+      h+='<div class="wt"><div class="wt-val" style="color:'+t.c+'">'+t.v+'</div><div class="wt-lbl">'+t.l+'</div></div>';
+    });
+    h+='</div>';
+    h+='<div style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
+    h+='<span class="badge bg">On Track: '+wt.onT+'</span><span class="badge ba">Uncertain: '+wt.unc+'</span><span class="badge br">Delayed: '+wt.del+'</span>';
+    h+='<span style="margin-left:auto;" class="badge bp">Stage Met: '+wt.met+'</span></div>';
+    // Daily breakdown table
+    h+='<div style="overflow-x:auto;"><table class="rt"><thead><tr><th>Date</th><th>Screen</th><th>Sourced</th><th>IV1</th><th>IV2</th><th>Final</th><th>Assess</th><th>Total Stages</th><th>On Track</th><th>Uncertain</th><th>Delayed</th><th>Stage Met</th></tr></thead><tbody>';
+    recs.forEach(function(r){var s=r.snap||{};h+='<tr><td style="font-weight:500;">'+escH(r.date)+'</td><td>'+s.screenedToday+'</td><td>'+s.sourcedToday+'</td><td>'+s.iv1+'</td><td>'+s.iv2+'</td><td>'+s.finalIv+'</td><td>'+s.assessment+'</td><td style="font-weight:700;color:#7e22ce;">'+s.totalInStages+'</td><td><span class="badge bg">'+s.onTrack+'</span></td><td><span class="badge ba">'+s.uncertain+'</span></td><td><span class="badge br">'+s.delayed+'</span></td><td><span class="badge bp">'+(s.stageMet||0)+'</span></td></tr>';});
+    h+='</tbody></table></div></div>';
+    return h;
+  }).join('');
+}
+function compileWeekly(){fillWeekSels();renderWeekly();toast('Compiled.');logS('Weekly compile: '+new Date().toLocaleString());}
+function exportWeekly(){var wk=(document.getElementById('wk-sel')||{value:''}).value;if(!wk){toast('Select a week.');return;}expCSV(ls().filter(function(r){return r.weekKey===wk;}),'WeeklyReport_'+wk+'.csv');toast('Exported.');}
+function exportAll(){var all=ls();if(!all.length){toast('No records.');return;}expCSV(all,'TA_Archive.csv');toast('Exported '+all.length+' records.');}
+function expCSV(recs,fname){
+  var H=['Date','Member','Type','Week','Open Roles','Rec Screen','Screened','Sourced','Calendly','IV1','IV2','Final','Assessment','Total Stages','Stage Met','On Track','Uncertain','Delayed'];
+  var rows=recs.map(function(r){var s=r.snap||{};return[r.date,r.member,r.roleType,r.weekKey,s.totalRoles,s.recruiting,s.screenedToday,s.sourcedToday,s.calendly,s.iv1,s.iv2,s.finalIv,s.assessment,s.totalInStages,s.stageMet||0,s.onTrack,s.uncertain,s.delayed];});
+  var csv=[H].concat(rows).map(function(r){return r.map(function(c){return'"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();
+}
+function clearAll(){if(!confirm('Delete ALL records?'))return;localStorage.removeItem(SK);localStorage.removeItem(MK);fillWeekSels();fillMbSels();renderArchive();toast('Cleared.');}
+
+/* ════ SCHEDULE ════ */
+function schedMidnight(){var now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);setTimeout(function(){runMidnight();schedMidnight();},next-now);}
+function schedFriday(){var now=new Date(),d=((5-now.getDay())+7)%7||7;var nf=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,23,59,0);setTimeout(function(){compileWeekly();schedFriday();},nf-now);}
+function runMidnight(){var m=lm();m.lastMidnightRun=new Date().toISOString();sm(m);fillWeekSels();renderArchive();updateSchedUI();logS('Nightly: '+new Date().toLocaleString());toast('Nightly consolidation complete.');}
+function updateSchedUI(){
+  var m=lm(),now=new Date();
+  var nm=document.getElementById('next-mid');if(nm){var next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);nm.textContent=next.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})+' 12:00 AM';}
+  var lm2=document.getElementById('last-mid');if(lm2)lm2.textContent=m.lastMidnightRun?new Date(m.lastMidnightRun).toLocaleString():'Not yet run';
+  var nf=document.getElementById('next-fri');if(nf){var d=((5-now.getDay())+7)%7||7;var fri=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d);nf.textContent=fri.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'short'})+' 11:59 PM';}
+}
+function logS(msg){var e=document.getElementById('sched-log');if(e)e.textContent='✓ '+msg;}
+
+/* ════ UTILS ════ */
+function printRpt(){var card=document.getElementById('report-card');if(!card){toast('Generate a report first.');return;}var w=window.open('','_blank','width=1400,height=900');if(!w){toast('Allow pop-ups.');return;}var st=Array.from(document.querySelectorAll('style')).map(function(s){return s.textContent;}).join('\n');w.document.write('<!DOCTYPE html><html><head><title>TA Report</title><style>'+st+'body{padding:20px;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'+card.outerHTML+'</body></html>');w.document.close();setTimeout(function(){w.focus();w.print();},500);}
+function copyRpt(){var el=document.getElementById('rpt-wrap');if(!el){toast('No report.');return;}navigator.clipboard.writeText(el.innerText||'').then(function(){toast('Copied!');}).catch(function(){toast('Copy failed.');});}
+var _tt;function toast(msg){var e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){e.classList.remove('show');},2800);}
+</script>
+</body>
+</html>
