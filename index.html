@@ -1583,15 +1583,15 @@ function genReport(){
   H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.screenedToday+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
   H+=tileArrow(snap.screenedToday,prevSnap?prevSnap.screenedToday:null);
-  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.screenedToday+' today</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.screenedToday+' '+(snap.screenedToday===1?'candidate':'candidates')+' today</div>';
   H+='</div>';
 
   /* Tile 3: Interviews Conducted Today */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.interviewConductedToday+'</div>';
-  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Interviews conducted</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Interviews conducted today</div>';
   H+=tileArrow(snap.interviewConductedToday,prevSnap?prevSnap.interviewConductedToday:null);
-  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.interviewConductedToday+' today</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.interviewConductedToday+' '+(snap.interviewConductedToday===1?'interview':'interviews')+' conducted</div>';
   H+='</div>';
 
   /* Tile 3: Total in interview stages */
@@ -1600,7 +1600,7 @@ function genReport(){
   H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.totalInStages+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Total in interview stages</div>';
   H+=tileArrow(snap.totalInStages,prevSnap?prevSnap.totalInStages:null);
-  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.totalInStages+' candidates across all stages</div>';
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.totalInStages+' '+(snap.totalInStages===1?'candidate':'candidates')+' across F1 to Final stages</div>';
   H+='</div>';
 
   /* Tile 4: Roles meeting stage target */
