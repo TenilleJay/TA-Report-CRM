@@ -403,17 +403,13 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
       <div class="ct">Step 1 — Details</div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Report date</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Report date <span style="color:#aaa;font-weight:400;">(M/D/YYYY)</span></div>
           <input type="text" id="up-date" placeholder="e.g. 4/15/2026" style="width:155px;" oninput="validateDateInput(this)">
         </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter / Sourcer</div>
           <select id="up-member" style="width:160px;">
             <option value="">— select</option>
-            <option value="Kartikey">Kartikey</option>
-            <option value="Gloria">Gloria</option>
-            <option value="Vipul">Vipul</option>
-            <option value="Gaurav">Gaurav</option>
           </select>
         </div>
         <div>
@@ -498,8 +494,14 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
         </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
-          <select id="cmp-dept" style="width:200px;" onchange="genReport()">
+          <select id="cmp-dept" style="width:200px;" onchange="fillCmpDates();genReport()">
             <option value="">— all departments</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Compare against date</div>
+          <select id="cmp-date-override" style="width:200px;" onchange="genReport()">
+            <option value="">— yesterday (auto)</option>
           </select>
         </div>
         <button class="btn btn-primary" onclick="genReport()">Regenerate</button>
@@ -520,25 +522,23 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Date A — baseline</div>
-          <select id="cmp-from" style="width:180px;" onchange="updateCmpPreview()"><option value="">— select</option></select>
+          <select id="cmp-from" style="width:180px;"><option value="">— select</option></select>
         </div>
         <div style="font-size:18px;color:var(--text3);padding-bottom:6px;">→</div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Date B — current</div>
-          <select id="cmp-to" style="width:180px;" onchange="updateCmpPreview()"><option value="">— select</option></select>
+          <select id="cmp-to" style="width:180px;"><option value="">— select</option></select>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter</div>
-          <select id="cmp-rec" style="width:160px;" onchange="cmpRecruiterChanged()"><option value="">— all recruiters</option></select>
+          <select id="cmp-rec" style="width:160px;"><option value="">— all recruiters</option></select>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
-          <select id="cmp-dep" style="width:200px;" onchange="updateCmpPreview()"><option value="">— all departments</option></select>
+          <select id="cmp-dep" style="width:200px;"><option value="">— all departments</option></select>
         </div>
         <button class="btn btn-primary" onclick="runCmp()">Run Comparison</button>
       </div>
-      <!-- Live preview banner -->
-      <div id="cmp-preview" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.7;background:var(--bg2);border:1px solid var(--border);"></div>
     </div>
     <div id="cmp-wrap"><div class="empty">Select two dates and run comparison.</div></div>
   </div>
@@ -912,11 +912,23 @@ function lndGoTo(sectionId){
   var un=document.getElementById('sb-user-name');if(un)un.textContent=name;
   var ur=document.getElementById('sb-user-role');if(ur)ur.textContent=m.role;
 
+  /* Populate recruiter dropdown from HUB_MEMBERS — excludes special users */
+  var upMember=document.getElementById('up-member');
+  if(upMember){
+    HUB_MEMBERS.filter(function(m){return HUB_SPECIAL.indexOf(m.name)===-1;})
+      .forEach(function(m){
+        var opt=document.createElement('option');
+        opt.value=m.name;opt.textContent=m.name;
+        upMember.appendChild(opt);
+      });
+    /* Pre-select the logged-in user */
+    if(currentHubUser)upMember.value=currentHubUser;
+  }
+
   /* Initialise app internals on first entry */
   var t=new Date();
   document.getElementById('sb-today').textContent=fmtD(t);
   var ud=document.getElementById('up-date');if(ud&&!ud.value)ud.value=toIn(t);
-  migrateWeekKeys();
   updateSbLast();fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();
   schedFriday();updateSchedUI();checkServerStatus();
 
@@ -951,19 +963,19 @@ function nav(id){
   if(id==='accum'){fillAccumDates();genAccum();}
   if(id==='weekly'){fillWeekSels();renderWeekly();}
   if(id==='archive')renderArchive();
-  if(id==='compare'){fillDateSels();updateCmpPreview();}
+  if(id==='compare')fillDateSels();
   if(id==='schedule')updateSchedUI();
   if(id==='sync')initSyncUI();
 }
 
 /* ════ DATE ════ */
 function pad(n){return String(n).padStart(2,'0');}
-function toIn(d){var m=d.getMonth()+1,dy=d.getDate();return d.getFullYear()+'-'+(m<10?'0'+m:m)+'-'+(dy<10?'0'+dy:dy);}/* YYYY-MM-DD */
+function toIn(d){return(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();}/* M/D/YYYY to match CSV */
 function fmtD(d){return d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});}
 function validateDateInput(el){
-  /* Accept YYYY-MM-DD (new default) or M/D/YYYY (legacy) */
+  /* Highlight red if doesn't look like M/D/YYYY */
   var v=el.value.trim();
-  var ok=!v||/^\d{4}-\d{2}-\d{2}$/.test(v)||/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v);
+  var ok=!v||/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v);
   el.style.borderColor=ok?'':'var(--red)';
 }
 function parseDateStr(s){
@@ -978,12 +990,8 @@ function parseDateStr(s){
 function fmtLong(s){var d=parseDateStr(s);return d?d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}):s||'';}
 function fmtShort(s){var d=parseDateStr(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):s||'';}
 function wkKey(ds){
-  if(!ds)return'';
-  var d=parseDateStr(ds);
-  if(!d)return'';
-  d.setHours(0,0,0,0);
-  var day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);
-  var mon=new Date(d.getFullYear(),d.getMonth(),diff);
+  if(!ds)return'';var d=parseDateStr(ds);if(!d)return'';d.setHours(0,0,0,0);
+  var day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);var mon=new Date(d.setDate(diff));
   return mon.getFullYear()+'-W'+pad(isoW(mon));
 }
 function isoW(d){
@@ -1020,58 +1028,48 @@ function parseTextRaw(raw,fname){
   var rows=tryDirectCSV(raw);
   if(!rows||rows.length===0){
     var preview=raw.slice(0,500);
-    /* Give a helpful hint about what was found in the first few rows */
-    var firstLines=raw.split('\n').slice(0,5);
-    var foundRoleTitle=firstLines.some(function(l){return l.toLowerCase().indexOf('role title')>-1;});
-    var hint=foundRoleTitle
-      ?'A "Role Title" column was detected but no data rows could be extracted — check that the Report Date in Step 1 matches the dates in your CSV.'
-      :'Could not find a "Role Title" column in the first 10 rows. Make sure you export as CSV (File → Download → Comma Separated Values). Both the standard format and extended formats with extra columns (e.g. Record ID, BU) are supported.';
     document.getElementById('ai-status').innerHTML=
-      '<div class="notice nr">'+escH(hint)+' First 500 chars read:</div>'+
+      '<div class="notice nr">Could not find a data table. Make sure you export as CSV (File → Download → Comma Separated Values). First 500 chars read:</div>'+
       '<div style="background:#1a1a18;color:#7cfc00;font-size:10px;font-family:monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;margin-top:6px;">'+escH(preview)+'</div>';
     return;
   }
 
   ALL_ROWS=rows;
 
-  /* Read the date from Step 1 and normalise to same format as CSV */
-  var step1Date=document.getElementById('up-date').value||''; /* YYYY-MM-DD */
+  /* Read Step 1 selections */
+  var step1Date=(document.getElementById('up-date').value||'').trim();
+  var step1Member=(document.getElementById('up-member').value||'').trim().toLowerCase();
+  var step1Dept=(document.getElementById('up-dept').value||'').trim().toLowerCase();
 
   /* Find all unique dates in CSV for comparison */
   var csvDates={};
   ALL_ROWS.forEach(function(r){var d=r.reportDate||'';if(d)csvDates[d]=true;});
   var uniqueDates=Object.keys(csvDates);
 
-  /* Normalise any date string to YYYY-MM-DD for reliable comparison */
-  function normDate(s){
-    if(!s)return'';s=s.trim();
-    var m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if(m)return m[3]+'-'+(m[1].length===1?'0':'')+m[1]+'-'+(m[2].length===1?'0':'')+m[2];
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-    return s;
-  }
-  var step1Norm=normDate(step1Date);
-  /* Compare by normalising both sides — CSV uses M/D/YYYY, step1 now uses YYYY-MM-DD */
-  function matchesStep1(csvDate){
+  /* ── Filter 1: Date ── */
+  var filtered=ALL_ROWS.filter(function(r){
     if(!step1Date)return true;
-    if(!csvDate)return false;
-    return normDate(csvDate)===step1Norm;
+    return (r.reportDate||'').trim()===step1Date;
+  });
+
+  /* ── Filter 2: Recruiter — match against the Recruiter column in CSV ── */
+  if(step1Member&&filtered.length>0){
+    var memberFiltered=filtered.filter(function(r){
+      var csvRecruiter=((r.recruiter||'')).trim().toLowerCase();
+      if(!csvRecruiter)return true; /* no recruiter col — include */
+      return csvRecruiter===step1Member;
+    });
+    if(memberFiltered.length>0)filtered=memberFiltered;
   }
 
-  var filtered=ALL_ROWS.filter(function(r){return matchesStep1(r.reportDate||'');});
-
-  /* Filter by department from Step 1 — but only if it actually reduces the results.
-     If no rows match the dept, skip the dept filter (the CSV may use different dept names). */
-  var step1Dept=(document.getElementById('up-dept').value||'').trim();
+  /* ── Filter 3: Department ── */
   if(step1Dept&&filtered.length>0){
     var deptFiltered=filtered.filter(function(r){
       var d=(r.dept||'').trim().toLowerCase();
-      var s=step1Dept.toLowerCase();
-      if(!d)return true; /* no dept col in this CSV — include row */
-      if(s==='k12 cialfo & bridgeu')return d.indexOf('k12')>-1;
-      return d===s||d.indexOf(s)>-1||s.indexOf(d)>-1;
+      if(!d)return false; /* no dept — exclude if dept filter is active */
+      if(step1Dept==='k12 cialfo & bridgeu')return d.indexOf('k12')>-1;
+      return d.trim()===step1Dept.trim(); /* exact match, both trimmed */
     });
-    /* Only apply dept filter if it matched something — otherwise show all date-filtered rows */
     if(deptFiltered.length>0)filtered=deptFiltered;
   }
 
@@ -1099,7 +1097,11 @@ function parseTextRaw(raw,fname){
   P.roleType=document.getElementById('up-role').value;
 
   var msg='\u2713 '+fname+' \u00b7 '+final.length+' roles';
-  if(step1Date&&ALL_ROWS.length>final.length)msg+=' for '+step1Date;
+  if(step1Date&&ALL_ROWS.length>final.length){
+    msg+=' for '+step1Date;
+    if(step1Member)msg+=' · '+document.getElementById('up-member').value;
+    if(step1Dept)msg+=' · '+document.getElementById('up-dept').value;
+  }
   msg+=' (from '+ALL_ROWS.length+' total rows)';
   showStatus('ng',msg);
   showPreview(final,null);
@@ -1112,31 +1114,30 @@ function parseTextRaw(raw,fname){
    Each entry: [canonicalField, [exact header, ...fallbacks in priority order]]
    Matching is: strip to lowercase alphanum+space, then exact → startsWith → contains */
 var FIELD_PATTERNS=[
-  /* Extra columns in some CSV variants (e.g. Tenille's format) — mapped but not used in report */
-  ['recordId',           ['record id','record id (tenille)','record id - primary key','record id - primary key(tenille)','record id primary key']],
-  ['bu',                 ['bu','bu (for tenille)','business unit']],
   ['roleTitle',          ['role title']],
   ['location',           ['location']],
-  ['dept',               ['department','dept','team']],/* col 2 — blank header, fallback by position */
+  ['dept',               ['department','dept','team']],
   ['hm',                 ['hiring manager']],
   ['priority',           ['priority','priority (high/med/low)','priority (high/mid/low)']],
   ['startDate',          ['start date']],
   ['targetOfferDate',    ['target offer date','target offer']],
   ['reportDate',         ['report date']],
   ['headcount',          ['headcount']],
+  ['recruiter',          ['recruiter']],
   ['recruiterScreening', ['recruiter screening']],
-  ['screenedToday',      ['screened today','interview scheduled (today)','interview scheduled']],
+  ['screenedToday',      ['recruiter screened today','screened today','interview scheduled (today)','interview scheduled']],
+  ['interviewConductedToday', ['interview conducted today','interview conducted','interviews conducted today','interviews conducted']],
   ['sourcedToday',       ['sourced today','sourced today (high pri only)','sourced today (high priority only)']],
   ['calendly',           ['awating schedule (candidates)','awaiting schedule (candidates)','calendly']],
   ['iv1',                ['interview 1 (f1)','interview 1','interview scheduled (f1)']],
   ['iv2',                ['interview 2 (f2 / n/a)','interview 2 (f2/n/a)','interview 2']],
   ['finalIv',            ['final interview']],
-  ['assessment',         ['assessment','assessment (if applic.)']],
-  ['stageTarget',        ['stage target','stage target (total','stage target (if applic.)']],
-  ['confidence',         ['confidence','confidence (on track / uncertain / delayed)','confidence (on track/uncertain/delayed)']],
-  ['totalInStages',      ['total in stages','total in stages (auto)']],
-  ['stageTargetMet',     ['stage target met','stage target met?','stage target met? (auto)','stage target met (auto)']],
-  ['daysRemaining',      ['days remaining','days remaining (auto)']]
+  ['assessment',         ['assessment (if applic.)','assessment']],
+  ['stageTarget',        ['stage target (total','stage target (if applic.)','stage target']],
+  ['confidence',         ['confidence (on track / uncertain / delayed)','confidence (on track/uncertain/delayed)','confidence']],
+  ['totalInStages',      ['total in stages (auto)','total in stages']],
+  ['stageTargetMet',     ['stage target met? (auto)','stage target met (auto)','stage target met?','stage target met']],
+  ['daysRemaining',      ['days remaining (auto)','days remaining']]
 ];
 
 function mapH(raw){
@@ -1160,16 +1161,35 @@ function mapH(raw){
   }
   return null;
 }
-/* ════ CSV PARSER — flexible column detection ════
-   Scans the first 10 rows to find the header row by locating "Role Title"
-   in ANY column — works for all CSV variants including those with extra
-   prefix columns (e.g. Record ID, BU) before the standard columns.
+/* ════ CSV PARSER — exact column positions from your spreadsheet ════
+   Row 0: blank
+   Row 1: group headers (ROLE DETAILS, DAILY ACTIVITY…)
+   Row 2: column headers  ← this is the header row
+   Row 3+: data
 
-   Standard format (Gloria):          col 0 = Role Title
-   Extended format (Tenille):         col 0 = Record ID, col 1 = Role Title, col 2 = BU, ...
-
-   All columns are mapped by header name, not position.
-   Dept column falls back to first blank/dept-named header near Role Title.
+   col 0  Role Title
+   col 1  Location
+   col 2  (dept/team — blank header)
+   col 3  Hiring Manager
+   col 4  Priority
+   col 5  Start Date
+   col 6  Target Offer Date
+   col 7  Report Date          ← key filter column
+   col 8  Headcount
+   col 9  Recruiter Screening
+   col 10 Screened Today
+   col 11 Sourced Today
+   col 12 Awating Schedule (Candidates)  → calendly
+   col 13 Interview Scheduled (Today)    → screenedToday (alt)
+   col 14 Interview 1 (F1)
+   col 15 Interview 2 (F2/N/A)
+   col 16 Final Interview
+   col 17 Assessment
+   col 18 Stage Target
+   col 19 Confidence
+   col 20 Total in Stages
+   col 21 Stage Target Met?
+   col 22 Days Remaining
 */
 
 function parseCSVFull(raw){
@@ -1197,48 +1217,55 @@ function tryDirectCSV(raw){
   var allRows=parseCSVFull(raw);
   if(allRows.length<3)return null;
 
-  /* Find the header row — search ANY column for 'role title' (handles extra prefix cols like Record ID) */
+  /* ── Step 1: Find the real header row ──
+     Scan up to row 10. A valid header row must contain 'role title'
+     somewhere in its cells (not just col 0 — your CSV has Record ID in col 0).
+     Also skip blank rows and group-header rows (ROLE DETAILS, DAILY ACTIVITY etc). */
   var headerIdx=-1;
-  var roleTitleCol=-1;
   for(var i=0;i<Math.min(10,allRows.length);i++){
     var cells=allRows[i];
-    for(var c=0;c<cells.length;c++){
-      var cv=(cells[c]||'').replace(/\n/g,' ').trim().toLowerCase();
-      if(cv==='role title'){headerIdx=i;roleTitleCol=c;break;}
+    /* Skip entirely blank rows */
+    if(!cells.length||cells.every(function(c){return!c.trim();}))continue;
+    /* Skip group-header rows — these contain known group labels but no field names */
+    var firstCell=(cells[0]||'').trim().toUpperCase();
+    if(firstCell==='ROLE DETAILS'||firstCell==='DAILY ACTIVITY'||firstCell==='SOURCING'||firstCell==='PIPELINE DEPTH')continue;
+    /* Look for 'role title' in any cell */
+    for(var j=0;j<cells.length;j++){
+      var cellNorm=(cells[j]||'').replace(/\n/g,' ').trim().toLowerCase();
+      if(cellNorm==='role title'){headerIdx=i;break;}
     }
     if(headerIdx>-1)break;
   }
   if(headerIdx===-1)return null;
 
-  /* Build field→colIndex map from header row, collapsing embedded newlines */
-  var hdrs=allRows[headerIdx].map(function(h){return h.replace(/\n/g,' ').trim();});
+  /* ── Step 2: Build field → column index map ──
+     Collapse embedded newlines in header cells before matching. */
+  var hdrs=allRows[headerIdx].map(function(h){return h.replace(/\n/g,' ').replace(/\r/g,' ').trim();});
   var ci={};
   hdrs.forEach(function(h,idx){
     var f=mapH(h);
     if(f&&ci[f]===undefined)ci[f]=idx;
   });
-  /* Dept fallback: look for first blank-ish header after role title col, or use col 2 */
-  if(ci.dept===undefined){
-    /* Try to find a column named 'department' or blank near the role title */
-    var deptGuess=-1;
-    for(var c=roleTitleCol;c<Math.min(hdrs.length,roleTitleCol+8);c++){
-      var h=(hdrs[c]||'').toLowerCase().trim();
-      if(h===''||h==='department'||h==='dept'||h==='team'){deptGuess=c;break;}
-    }
-    ci.dept=deptGuess>-1?deptGuess:2;
-  }
+
+  /* ── Step 3: Fallback column positions for your specific CSV layout ──
+     Record ID=0, Recruiter=1, Role Title=2, Location=3, BU=4,
+     Department=5, Hiring Manager=6 */
+  if(ci.roleTitle===undefined)ci.roleTitle=2;
+  if(ci.dept===undefined)ci.dept=5;
+  if(ci.recruiter===undefined)ci.recruiter=1;
 
   /* Must have at minimum roleTitle + reportDate */
-  if(ci.roleTitle===undefined||ci.reportDate===undefined)return null;
+  if(ci.reportDate===undefined)return null;
 
-  /* Parse data rows */
+  /* ── Step 4: Parse data rows ── */
   var dataRows=[];
   for(var r=headerIdx+1;r<allRows.length;r++){
     var cells=allRows[r];
     /* Skip blank rows */
     if(!cells.length||cells.every(function(c){return!c.trim();}))continue;
-    /* Skip any row that looks like a header (first cell maps to a field name) */
-    if(mapH((cells[0]||'').replace(/\n/g,' ')))continue;
+    /* Skip rows that look like a repeated header */
+    var c0=(cells[0]||'').replace(/\n/g,' ').trim().toLowerCase();
+    if(c0==='record id'||c0==='role title'||c0==='role details')continue;
     /* Skip rows with no role title */
     var roleVal=(cells[ci.roleTitle]||'').trim();
     if(!roleVal||roleVal.length<2)continue;
@@ -1247,6 +1274,15 @@ function tryDirectCSV(raw){
     Object.keys(ci).forEach(function(f){
       row[f]=(cells[ci[f]]||'').replace(/\n/g,' ').trim();
     });
+    /* Always normalise dept and recruiter — CSV often has trailing spaces */
+    if(row.dept)row.dept=row.dept.trim();
+    if(row.recruiter)row.recruiter=row.recruiter.trim();
+
+    /* ── Recruiter field: pull from 'Recruiter' column (col 1) if mapped ── */
+    if(ci.recruiter!==undefined&&!row.member){
+      row.member=(cells[ci.recruiter]||'').replace(/\n/g,' ').trim();
+    }
+
     dataRows.push(row);
   }
   return dataRows.length>0?dataRows:null;
@@ -1270,7 +1306,6 @@ function showPreview(rows,meta){
 
   /* Exact columns in spreadsheet order, with group colours */
   var COLS=[
-    {f:'recordId',        l:'Record ID',             g:'gr'},
     {f:'roleTitle',       l:'Role Title',           g:'gr'},
     {f:'location',        l:'Location',              g:'gr'},
     {f:'hm',              l:'Hiring Manager',        g:'gr'},
@@ -1282,6 +1317,7 @@ function showPreview(rows,meta){
     {f:'calendly',        l:'Calendly',              g:'gd'},
     {f:'recruiterScreening',l:'Recruiter Screening', g:'gd'},
     {f:'screenedToday',   l:'Screened Today',        g:'gd'},
+    {f:'interviewConductedToday', l:'Interviews Conducted Today', g:'gd'},
     {f:'sourcedToday',    l:'Sourced Today (Hi Pri)', g:'gd'},
     {f:'iv1',             l:'Interview 1 (F1)',       g:'gp'},
     {f:'iv2',             l:'Interview 2 (F2/N/A)',   g:'gp'},
@@ -1330,11 +1366,11 @@ function processUpload(){
 
 /* ════ SNAP COMPUTE ════ */
 function computeSnap(rows){
-  var s={totalRoles:rows.length,recruiting:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,priHigh:0,priMid:0,priLow:0,onTrack:0,uncertain:0,delayed:0,stageMet:0};
+  var s={totalRoles:rows.length,recruiting:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,priHigh:0,priMid:0,priLow:0,onTrack:0,uncertain:0,delayed:0,stageMet:0};
   rows.forEach(function(r){
     var p=(r.priority||'').toLowerCase();
     if(p==='high')s.priHigh++;else if(p==='low')s.priLow++;else s.priMid++;
-    s.recruiting+=n(r.recruiterScreening);s.screenedToday+=n(r.screenedToday);s.sourcedToday+=n(r.sourcedToday);s.calendly+=n(r.calendly);
+    s.recruiting+=n(r.recruiterScreening);s.screenedToday+=n(r.screenedToday);s.interviewConductedToday+=n(r.interviewConductedToday);s.sourcedToday+=n(r.sourcedToday);s.calendly+=n(r.calendly);
     s.iv1+=n(r.iv1);s.iv2+=n(r.iv2);s.finalIv+=n(r.finalIv);s.assessment+=n(r.assessment);
     var tis=n(r.totalInStages)||(n(r.iv1)+n(r.iv2)+n(r.finalIv)+n(r.assessment));s.totalInStages+=tis;
     var conf=(r.confidence||'').toLowerCase();
@@ -1395,40 +1431,57 @@ function genReport(){
   var reportDateShort=fmtShort(reportDate);
 
   /* ── Resolve compare-against: recruiter selector → dept filter → date override ── */
-  var cmpMember=(document.getElementById('cmp-member')||{value:''}).value||P.member;
-  var cmpDept=(document.getElementById('cmp-dept')||{value:''}).value||'';
+  var cmpMemberRaw=(document.getElementById('cmp-member')||{value:''}).value;
+  /* If dropdown is blank (auto), use the current session's recruiter */
+  var cmpMember=cmpMemberRaw||P.member;
+  var cmpDept=(document.getElementById('cmp-dept')||{value:''}).value||P.dept||'';
+  var cmpDateOverride=(document.getElementById('cmp-date-override')||{value:''}).value||'';
 
-  /* Find prev record: scan backwards through all saved dates to find the most
-     recent actual record for this member+dept — skips weekends and any days
-     with no upload (e.g. Monday correctly finds Friday, not Sunday). */
+  /* Find prev record: if user picked a specific date, use that.
+     Otherwise scan backwards to find the most recent saved record
+     for this member+dept — skips weekends and days with no upload. */
   var allSaved=ls();
 
   /* Build sorted list of all dates that have a real record for this member+dept */
   var candidateDates=allSaved
     .filter(function(r){
-      if(r.member!==cmpMember)return false;
-      if(cmpDept&&r.dept&&r.dept!==cmpDept)return false;
+      if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
+      if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
       return r.rows&&r.rows.length;
     })
     .map(function(r){return r.date;})
     .filter(function(d,i,a){return a.indexOf(d)===i;}) /* unique */
     .sort(); /* ascending */
 
-  /* Find the latest saved date that is strictly before the current report date */
+  /* If user manually selected a date, use it directly */
   var reportDateObj=parseDateStr(reportDate);
   var prevRecord=null;
   var yesterdayStr='';
-  for(var ci=candidateDates.length-1;ci>=0;ci--){
-    var cd=parseDateStr(candidateDates[ci]);
-    if(cd&&reportDateObj&&cd<reportDateObj){
-      yesterdayStr=candidateDates[ci];
-      var prevCandidates=allSaved.filter(function(r){
-        if(r.date!==yesterdayStr)return false;
-        if(r.member!==cmpMember)return false;
-        if(cmpDept&&r.dept&&r.dept!==cmpDept)return false;
-        return r.rows&&r.rows.length;
-      });
-      if(prevCandidates.length>0){prevRecord=prevCandidates[0];break;}
+
+  if(cmpDateOverride){
+    /* Manual override — use exactly the date chosen */
+    yesterdayStr=cmpDateOverride;
+    var overrideCandidates=allSaved.filter(function(r){
+      if(r.date!==cmpDateOverride)return false;
+      if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
+      if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
+      return r.rows&&r.rows.length;
+    });
+    if(overrideCandidates.length>0)prevRecord=overrideCandidates[0];
+  } else {
+    /* Auto — find the latest saved date strictly before the current report date */
+    for(var ci=candidateDates.length-1;ci>=0;ci--){
+      var cd=parseDateStr(candidateDates[ci]);
+      if(cd&&reportDateObj&&cd<reportDateObj){
+        yesterdayStr=candidateDates[ci];
+        var prevCandidates=allSaved.filter(function(r){
+          if(r.date!==yesterdayStr)return false;
+          if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
+          if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
+          return r.rows&&r.rows.length;
+        });
+        if(prevCandidates.length>0){prevRecord=prevCandidates[0];break;}
+      }
     }
   }
   var yesterdayFmt=yesterdayStr?fmtLong(yesterdayStr):'';
@@ -1506,7 +1559,7 @@ function genReport(){
   }
 
   /* ══ OVERVIEW TILES ══ */
-  H+='<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid #e4e2da;">';
+  H+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e4e2da;">';
 
   /* Tile 1: Open roles */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
@@ -1522,6 +1575,14 @@ function genReport(){
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
   H+=tileArrow(snap.screenedToday,prevSnap?prevSnap.screenedToday:null);
   H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.screenedToday+' today</div>';
+  H+='</div>';
+
+  /* Tile 3: Interviews Conducted Today */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.interviewConductedToday+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Interviews conducted</div>';
+  H+=tileArrow(snap.interviewConductedToday,prevSnap?prevSnap.interviewConductedToday:null);
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.interviewConductedToday+' today</div>';
   H+='</div>';
 
   /* Tile 3: Total in interview stages */
@@ -1734,6 +1795,7 @@ function genReport(){
   var prevSnapF=prevRecord&&prevRecord.snap?prevRecord.snap:null;
   var fCols=[
     {l:'Screened today', tk:'screenedToday', sv:snap.screenedToday, pv:prevSnapF?prevSnapF.screenedToday:null},
+    {l:'Interviews conducted', tk:'interviewConductedToday', sv:snap.interviewConductedToday, pv:prevSnapF?prevSnapF.interviewConductedToday:null},
     {l:'Assessment',     tk:'assessment',    sv:snap.assessment,    pv:prevSnapF?prevSnapF.assessment:null},
     {l:'Interview 1 (F1)',tk:'iv1',          sv:snap.iv1,           pv:prevSnapF?prevSnapF.iv1:null},
     {l:'Interview 2 (F2)',tk:'iv2',          sv:snap.iv2,           pv:prevSnapF?prevSnapF.iv2:null},
@@ -1795,21 +1857,12 @@ function saveRecord(){
   var date=P.date||toIn(new Date());
   var dept=P.dept||'';
   /* Key = date + member + dept — same person can save multiple departments per day */
-  var all=ls().filter(function(r){return!(r.date===date&&r.member===P.member&&(r.dept||'')===dept);});
+  var all=ls().filter(function(r){return!(r.date===date&&(r.member||'').trim().toLowerCase()===(P.member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());});
   var rec={date:date,member:P.member,roleType:P.roleType,dept:dept,weekKey:wkKey(date),savedAt:new Date().toISOString(),snap:computeSnap(P.rows),rows:P.rows.slice()};
   all.push(rec);all.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:0;});ss(all);
   var m=lm();m.lastSaved=new Date().toISOString();sm(m);
   fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();updateSbLast();
   toast('✓ Saved: '+date+' · '+P.member+(dept?' · '+dept:''));
-}
-function migrateWeekKeys(){
-  var all=ls();var changed=false;
-  all.forEach(function(r){
-    if(!r.weekKey||r.weekKey.indexOf('NaN')>-1){
-      var k=wkKey(r.date);if(k){r.weekKey=k;changed=true;}
-    }
-  });
-  if(changed){ss(all);}
 }
 function updateSbLast(){var all=ls(),el=document.getElementById('sb-last');if(!el)return;if(all.length){var l=all[all.length-1];el.textContent='Last: '+l.date+' ('+l.member+')';}else el.textContent='No records yet';}
 function fillWeekSels(){
@@ -1852,76 +1905,14 @@ function fillDateSels(){
 }
 
 /* ════ COMPARE SELECTORS ════ */
-
-/* Called when Recruiter dropdown changes — narrows Dept to only that recruiter's depts */
-function cmpRecruiterChanged(){
-  var recVal=(document.getElementById('cmp-rec')||{value:''}).value;
-  var depSel=document.getElementById('cmp-dep');
-  if(!depSel)return;
-  var all=ls();
-  var deps;
-  if(recVal){
-    /* Only show depts this recruiter has records in */
-    deps=[...new Set(all.filter(function(r){return r.member===recVal&&r.dept;}).map(function(r){return r.dept.trim();}))].sort();
-  } else {
-    /* No recruiter filter — show all depts */
-    deps=[...new Set(all.map(function(r){return(r.dept||'').trim();}).filter(Boolean))].sort();
-  }
-  var prev=depSel.value;
-  depSel.innerHTML='<option value="">— all departments</option>'+deps.map(function(d){return'<option value="'+escH(d)+'">'+escH(d)+'</option>';}).join('');
-  /* Auto-select if prev value is still valid */
-  if(prev&&deps.indexOf(prev)>-1)depSel.value=prev;
-  /* Also re-run preview */
-  updateCmpPreview();
-}
-
-/* Live preview — shows how many records match the current filter on each date */
-function updateCmpPreview(){
-  var preview=document.getElementById('cmp-preview');
-  if(!preview)return;
-  var f=(document.getElementById('cmp-from')||{value:''}).value;
-  var t=(document.getElementById('cmp-to')||{value:''}).value;
-  var filterRec=(document.getElementById('cmp-rec')||{value:''}).value||'';
-  var filterDep=(document.getElementById('cmp-dep')||{value:''}).value||'';
-  if(!f&&!t){preview.style.display='none';return;}
-  var all=ls();
-  function countFor(date){
-    if(!date)return null;
-    return all.filter(function(r){
-      if(r.date!==date)return false;
-      if(filterRec&&r.member!==filterRec)return false;
-      if(filterDep&&(r.dept||'').trim()!==(filterDep||'').trim())return false;
-      return r.rows&&r.rows.length;
-    });
-  }
-  var recsA=f?countFor(f):null;
-  var recsB=t?countFor(t):null;
-  /* Build summary line */
-  var parts=[];
-  if(filterRec)parts.push('<strong>'+escH(filterRec)+'</strong>');
-  if(filterDep)parts.push('<strong>'+escH(filterDep)+'</strong>');
-  if(!filterRec&&!filterDep)parts.push('<strong>All recruiters · All departments</strong>');
-  var whoStr=parts.join(' &nbsp;·&nbsp; ');
-  function recInfo(recs,label,date){
-    if(!recs)return'';
-    var roleCount=recs.reduce(function(s,r){return s+(r.rows?r.rows.length:0);},0);
-    var color=recs.length===0?'var(--red)':'var(--green-text)';
-    var icon=recs.length===0?'⚠':'✓';
-    return'<span style="color:'+color+';font-weight:600;">'+icon+' '+label+' ('+escH(fmtShort(date))+'): '+recs.length+' record'+(recs.length!==1?'s':'')+', '+roleCount+' role'+(roleCount!==1?'s':'')+'</span>';
-  }
-  var aInfo=recsA?recInfo(recsA,'Date A',f):'';
-  var bInfo=recsB?recInfo(recsB,'Date B',t):'';
-  var separator=aInfo&&bInfo?' &nbsp;&nbsp;→&nbsp;&nbsp; ':'';
-  var warn='';
-  if(recsA&&recsA.length===0)warn+='<div style="color:var(--red);margin-top:4px;">⚠ No records found for Date A with this filter — check recruiter/department selection.</div>';
-  if(recsB&&recsB.length===0)warn+='<div style="color:var(--red);margin-top:4px;">⚠ No records found for Date B with this filter — check recruiter/department selection.</div>';
-  preview.style.display='block';
-  preview.innerHTML=whoStr+'<br>'+aInfo+separator+bInfo+warn;
-}
-
 function fillCmpMember(){
   var s=document.getElementById('cmp-member');if(!s)return;
-  var members={};ls().forEach(function(r){if(r.member)members[r.member]=1;});
+  /* Always seed with full team from HUB_MEMBERS, excluding special users */
+  var members={};
+  HUB_MEMBERS.filter(function(m){return HUB_SPECIAL.indexOf(m.name)===-1;})
+    .forEach(function(m){members[m.name]=1;});
+  /* Also add anyone from saved records (in case of name changes) */
+  ls().forEach(function(r){if(r.member)members[r.member]=1;});
   var mbs=Object.keys(members).sort();
   var prev=s.value;
   s.innerHTML='<option value="">— auto (same recruiter)</option>'+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');
@@ -1938,7 +1929,7 @@ function fillCmpDepts(){
   /* Add current session dept so it appears immediately after upload */
   if(P.dept)depts[P.dept]=1;
   /* Add any dept from saved records */
-  ls().filter(function(r){return!member||r.member===member;}).forEach(function(r){if(r.dept)depts[r.dept]=1;});
+  ls().filter(function(r){return!member||(r.member||'').trim().toLowerCase()===member.trim().toLowerCase();}).forEach(function(r){if(r.dept)depts[r.dept]=1;});
   var ds=Object.keys(depts).sort();
   var prev=s.value;
   s.innerHTML='<option value="">— all departments</option>'+ds.map(function(d){return'<option value="'+escH(d)+'">'+escH(d)+'</option>';}).join('');
@@ -1949,13 +1940,13 @@ function fillCmpDepts(){
 }
 function fillCmpDates(){
   var s=document.getElementById('cmp-date-override');if(!s)return;
-  var member=(document.getElementById('cmp-member')||{value:''}).value||P.member;
-  var dept=(document.getElementById('cmp-dept')||{value:''}).value||'';
+  var member=((document.getElementById('cmp-member')||{value:''}).value||P.member||'').trim().toLowerCase();
+  var dept=((document.getElementById('cmp-dept')||{value:''}).value||'').trim().toLowerCase();
   var dates=ls().filter(function(r){
-    if(member&&r.member!==member)return false;
-    if(dept&&r.dept&&r.dept!==dept)return false;
+    if(member&&(r.member||'').trim().toLowerCase()!==member)return false;
+    if(dept&&(r.dept||'').trim().toLowerCase()!==dept)return false;
     return true;
-  }).map(function(r){return r.date;}).sort().reverse();
+  }).map(function(r){return r.date;}).filter(function(d,i,a){return a.indexOf(d)===i;}).sort().reverse();
   var prev=s.value;
   s.innerHTML='<option value="">— yesterday (auto)</option>'+dates.map(function(d){return'<option value="'+escH(d)+'">'+escH(fmtShort(d))+' — '+escH(fmtLong(d))+'</option>';}).join('');
   if(prev&&dates.indexOf(prev)>-1)s.value=prev;
@@ -1993,8 +1984,8 @@ function renderArchive(){
 }
 function loadRec(date,member,dept){
   dept=dept||'';
-  var rec=ls().find(function(r){return r.date===date&&r.member===member&&(r.dept||'')===dept;});
-  if(!rec)rec=ls().find(function(r){return r.date===date&&r.member===member;});
+  var rec=ls().find(function(r){return r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase();});
+  if(!rec)rec=ls().find(function(r){return r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase();});
   if(!rec){toast('Not found.');return;}
   P={rows:rec.rows||[],date:rec.date,member:rec.member,roleType:rec.roleType||'recruiter',dept:rec.dept||''};
   document.getElementById('up-date').value=rec.date;
@@ -2005,7 +1996,7 @@ function loadRec(date,member,dept){
 function delRec(date,member,dept){
   dept=dept||'';
   if(!confirm('Delete this record?'))return;
-  ss(ls().filter(function(r){return!(r.date===date&&r.member===member&&(r.dept||'')===dept);}));
+  ss(ls().filter(function(r){return!(r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());}));
   fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();toast('Deleted.');
 }
 function arcLoad(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}loadRec(r.date,r.member,r.dept||'');}
@@ -2057,7 +2048,7 @@ function genAccum(){
 
   /* Aggregate snap across all records */
   function aggSnap(recs){
-    var s={totalRoles:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,priHigh:0,priMid:0,priLow:0};
+    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,priHigh:0,priMid:0,priLow:0};
     recs.forEach(function(r){
       var sn=r.snap||computeSnap(r.rows||[]);
       Object.keys(s).forEach(function(k){s[k]+=(sn[k]||0);});
@@ -2382,20 +2373,13 @@ function runCmp(){
     return all.filter(function(r){
       if(r.date!==date)return false;
       if(filterRec&&r.member!==filterRec)return false;
-      if(filterDep&&(r.dept||'').trim()!==filterDep.trim())return false;
+      if(filterDep&&r.dept&&r.dept!==filterDep)return false;
       return r.rows&&r.rows.length;
     });
   }
   var recsA=getForDate(f);
   var recsB=getForDate(t);
-  if(!recsA.length||!recsB.length){
-    var missingA=!recsA.length,missingB=!recsB.length;
-    var msg='No records found for '+(missingA&&missingB?'either date':missingA?'Date A ('+fmtShort(f)+')':'Date B ('+fmtShort(t)+')')+'.';
-    if(filterRec||filterDep)msg+=' Try a different recruiter or department filter.';
-    toast(msg);
-    updateCmpPreview();
-    return;
-  }
+  if(!recsA.length||!recsB.length){toast('No matching records for one or both dates.');return;}
 
   /* Merge all rows across records for each date */
   function mergeRows(recs){var rows=[];recs.forEach(function(r){(r.rows||[]).forEach(function(row){var merged=Object.assign({},row);merged._member=r.member;merged._dept=r.dept||'';rows.push(merged);});});return rows;}
@@ -2404,7 +2388,7 @@ function runCmp(){
 
   /* Aggregate snap for a set of records */
   function aggSnap(recs){
-    var s={totalRoles:0,screenedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,recruiting:0};
+    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,recruiting:0};
     recs.forEach(function(r){var snap=r.snap||computeSnap(r.rows||[]);
       s.totalRoles+=snap.totalRoles||0;s.screenedToday+=snap.screenedToday||0;s.sourcedToday+=snap.sourcedToday||0;
       s.calendly+=snap.calendly||0;s.iv1+=snap.iv1||0;s.iv2+=snap.iv2||0;s.finalIv+=snap.finalIv||0;
@@ -2418,41 +2402,19 @@ function runCmp(){
 
   var fmtA=fmtLong(f),fmtB=fmtLong(t);
   var shortA=fmtShort(f),shortB=fmtShort(t);
-  /* Role key — use Record ID if present (exact match), otherwise fall back to
-     title+location+startDate composite (handles CSVs without IDs gracefully) */
-  function normKey(r){
-    if(r.recordId&&r.recordId.trim())return'id:'+r.recordId.trim();
-    return'c:'+(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'')+
-          '|'+(r.location||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'')+
-          '|'+(r.startDate||'').replace(/\s+/g,'');
-  }
+  function normKey(r){return(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');}
 
   var H='';
 
   /* ══ SECTION HEADER ══ */
-  var rolesA=recsA.reduce(function(s,r){return s+(r.rows?r.rows.length:0);},0);
-  var rolesB=recsB.reduce(function(s,r){return s+(r.rows?r.rows.length:0);},0);
-  H+='<div style="background:#1a1a18;color:#fff;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:0;flex-wrap:wrap;gap:10px;">';
+  H+='<div style="background:#1a1a18;color:#fff;border-radius:12px 12px 0 0;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">';
   H+='<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.5;margin-bottom:2px;">Day-over-Day Comparison</div>';
-  H+='<div style="font-size:16px;font-weight:700;">'+escH(shortA)+' → '+escH(shortB)+'</div>';
-  H+='<div style="font-size:11px;opacity:.5;margin-top:3px;">';
+  H+='<div style="font-size:16px;font-weight:700;">'+escH(shortA)+' → '+escH(shortB)+'</div></div>';
+  H+='<div style="text-align:right;font-size:12px;opacity:.6;line-height:1.9;">';
   if(filterRec)H+=escH(filterRec);
   if(filterDep)H+=(filterRec?' · ':'')+escH(filterDep);
   if(!filterRec&&!filterDep)H+='All recruiters · All departments';
   H+='</div></div>';
-  /* Confirmation summary — roles matched per date */
-  H+='<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">';
-  H+='<div style="text-align:center;background:rgba(255,255,255,0.07);border-radius:8px;padding:8px 14px;">';
-  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.5;margin-bottom:2px;">Date A · '+escH(shortA)+'</div>';
-  H+='<div style="font-size:13px;font-weight:700;color:#7dd3fc;">'+recsA.length+' record'+(recsA.length!==1?'s':'')+' · '+rolesA+' role'+(rolesA!==1?'s':'')+'</div>';
-  H+='</div>';
-  H+='<div style="font-size:18px;opacity:.4;">→</div>';
-  H+='<div style="text-align:center;background:rgba(255,255,255,0.07);border-radius:8px;padding:8px 14px;">';
-  H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.5;margin-bottom:2px;">Date B · '+escH(shortB)+'</div>';
-  H+='<div style="font-size:13px;font-weight:700;color:#86efac;">'+recsB.length+' record'+(recsB.length!==1?'s':'')+' · '+rolesB+' role'+(rolesB!==1?'s':'')+'</div>';
-  H+='</div>';
-  H+='</div>';
-  H+='</div>';
 
   /* ══ ① OVERVIEW TILES ══ */
   var tileData=[
@@ -2483,13 +2445,13 @@ function runCmp(){
   /* ══ ② PER-RECRUITER BREAKDOWN ══ */
   var allMembers=[...new Set(recsA.map(function(r){return r.member;}).concat(recsB.map(function(r){return r.member;})))].sort();
 
-  /* Build per-member role maps — keyed by Record ID (if present) else composite */
+  /* Build per-member role maps for role-level lookup */
   function memberRowMap(recs,member){
     var map={};
     recs.filter(function(r){return r.member===member;}).forEach(function(rec){
       (rec.rows||[]).forEach(function(row){
         var k=normKey(row);
-        if(k)map[k]=row; /* last write wins — same ID on two dates takes latest */
+        if(k&&!map[k])map[k]=row;
       });
     });
     return map;
@@ -2614,13 +2576,11 @@ function runCmp(){
       H+='<tr style="border-bottom:1px solid #f0efeb;background:'+rowBg+';">';
       /* Role name */
       H+='<td style="padding:6px 10px;font-weight:500;border-right:1px solid #e4e2da;">';
-      /* Record ID badge */
-      if(display.recordId)H+='<span style="font-size:9px;font-weight:700;color:#6c63ff;background:#eef2ff;padding:1px 6px;border-radius:3px;margin-right:5px;font-family:monospace;">'+escH(display.recordId)+'</span>';
       H+=escH(display.roleTitle||'—');
       if(display.location)H+=' <span style="color:#888;font-size:10px;">'+escH(display.location)+'</span>';
       if(display.hm)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(display.hm)+'</span>';
-      if(isNew)H+='<span style="background:#f0fdf4;color:#15803d;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">✦ NEW</span>';
-      if(isGone)H+='<span style="background:#fef2f2;color:#b91c1c;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">✓ CLOSED</span>';
+      if(isNew)H+='<span style="background:#f0fdf4;color:#15803d;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">NEW</span>';
+      if(isGone)H+='<span style="background:#fef2f2;color:#b91c1c;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;">GONE</span>';
       H+='</td>';
       /* Priority */
       H+='<td style="padding:6px 8px;border-right:1px solid #e4e2da;">'+pBadge(display.priority)+'</td>';
@@ -2692,14 +2652,11 @@ function runCmp(){
   });
   H+='</div>';/* end per-recruiter section */
 
-  /* ══ ③ ROLE MOVEMENT ══ — keyed by Record ID where available */
+  /* ══ ③ ROLE MOVEMENT ══ */
   var mapA={},mapB={};
   rowsA.forEach(function(r){var k=normKey(r);if(k)mapA[k]=r;});
   rowsB.forEach(function(r){var k=normKey(r);if(k)mapB[k]=r;});
 
-  /* Separate ID-keyed from composite-keyed — only flag as new/gone when using IDs
-     (composite keys can mismatch due to minor text differences) */
-  var hasIds=rowsA.concat(rowsB).some(function(r){return r.recordId&&r.recordId.trim();});
   var newRoles=Object.keys(mapB).filter(function(k){return!mapA[k];}).map(function(k){return mapB[k];});
   var goneRoles=Object.keys(mapA).filter(function(k){return!mapB[k];}).map(function(k){return mapA[k];});
   var confChanges=[];
@@ -2710,11 +2667,11 @@ function runCmp(){
     var ca=(ra.confidence||'').toLowerCase(),cb=(rb.confidence||'').toLowerCase();
     function confLabel(c){return c.indexOf('track')>-1?'On Track':c.indexOf('uncertain')>-1?'Uncertain':c.indexOf('delay')>-1?'Delayed':'';}
     var la=confLabel(ca),lb=confLabel(cb);
-    if(la&&lb&&la!==lb)confChanges.push({id:rb.recordId||'',title:rb.roleTitle||k,from:la,to:lb,member:rb._member||''});
+    if(la&&lb&&la!==lb)confChanges.push({title:rb.roleTitle||k,from:la,to:lb,member:rb._member||''});
     var ma=(ra.stageTargetMet||'').toLowerCase(),mb=(rb.stageTargetMet||'').toLowerCase();
     var wasMet=ma.indexOf('met')>-1||ma==='yes'||ma==='✓';
     var isMet=mb.indexOf('met')>-1||mb==='yes'||mb==='✓';
-    if(wasMet!==isMet)metChanges.push({id:rb.recordId||'',title:rb.roleTitle||k,member:rb._member||'',nowMet:isMet});
+    if(wasMet!==isMet)metChanges.push({title:rb.roleTitle||k,member:rb._member||'',nowMet:isMet});
   });
 
   H+='<div style="background:#fff;border:1px solid #e4e2da;border-top:none;">';
@@ -2724,14 +2681,14 @@ function runCmp(){
   /* New roles */
   H+='<div style="padding:14px 16px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#15803d;margin-bottom:8px;">New roles <span style="background:#f0fdf4;padding:1px 7px;border-radius:99px;font-size:11px;color:#15803d;">'+newRoles.length+'</span></div>';
-  if(newRoles.length){newRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+(r.recordId?'<span style="font-size:9px;font-weight:700;color:#6c63ff;background:#eef2ff;padding:1px 5px;border-radius:3px;margin-right:4px;font-family:monospace;">'+escH(r.recordId)+'</span>':'')+escH(r.roleTitle||'—')+(r.location?'<span style="color:#888;font-size:10px;"> · '+escH(r.location)+'</span>':'')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
+  if(newRoles.length){newRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+escH(r.roleTitle||'—')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
   else H+='<div style="font-size:12px;color:#aaa;">None</div>';
   H+='</div>';
 
   /* Gone roles */
   H+='<div style="padding:14px 16px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#b91c1c;margin-bottom:8px;">Removed roles <span style="background:#fef2f2;padding:1px 7px;border-radius:99px;font-size:11px;color:#b91c1c;">'+goneRoles.length+'</span></div>';
-  if(goneRoles.length){goneRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+(r.recordId?'<span style="font-size:9px;font-weight:700;color:#6c63ff;background:#eef2ff;padding:1px 5px;border-radius:3px;margin-right:4px;font-family:monospace;">'+escH(r.recordId)+'</span>':'')+escH(r.roleTitle||'—')+(r.location?'<span style="color:#888;font-size:10px;"> · '+escH(r.location)+'</span>':'')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
+  if(goneRoles.length){goneRoles.forEach(function(r){H+='<div style="font-size:12px;color:#1a1a18;padding:3px 0;border-bottom:1px solid #f0efeb;">'+escH(r.roleTitle||'—')+(r._member?'<span style="color:#888;font-size:10px;"> · '+escH(r._member)+'</span>':'')+'</div>';});}
   else H+='<div style="font-size:12px;color:#aaa;">None</div>';
   H+='</div>';
 
@@ -2743,7 +2700,7 @@ function runCmp(){
       var fc=c.from==='On Track'?'#16a34a':c.from==='Uncertain'?'#d97706':'#dc2626';
       var tc=c.to==='On Track'?'#16a34a':c.to==='Uncertain'?'#d97706':'#dc2626';
       H+='<div style="font-size:12px;padding:3px 0;border-bottom:1px solid #f0efeb;">';
-      H+=(c.id?'<span style="font-size:9px;font-weight:700;color:#6c63ff;background:#eef2ff;padding:1px 5px;border-radius:3px;margin-right:4px;font-family:monospace;">'+escH(c.id)+'</span>':'')+escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
+      H+=escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
       H+='<br><span style="font-size:10px;font-weight:700;color:'+fc+';">'+escH(c.from)+'</span>';
       H+='<span style="color:#aaa;font-size:10px;"> → </span>';
       H+='<span style="font-size:10px;font-weight:700;color:'+tc+';">'+escH(c.to)+'</span></div>';
@@ -2757,7 +2714,7 @@ function runCmp(){
   if(metChanges.length){
     metChanges.forEach(function(c){
       H+='<div style="font-size:12px;padding:3px 0;border-bottom:1px solid #f0efeb;">';
-      H+=(c.id?'<span style="font-size:9px;font-weight:700;color:#6c63ff;background:#eef2ff;padding:1px 5px;border-radius:3px;margin-right:4px;font-family:monospace;">'+escH(c.id)+'</span>':'')+escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
+      H+=escH(c.title)+(c.member?'<span style="color:#888;font-size:10px;"> · '+escH(c.member)+'</span>':'');
       H+='<br><span style="font-size:10px;font-weight:700;color:'+(c.nowMet?'#16a34a':'#dc2626')+';">'+(c.nowMet?'Now met ✓':'No longer met')+'</span></div>';
     });
   } else H+='<div style="font-size:12px;color:#aaa;">No changes</div>';
