@@ -1114,6 +1114,7 @@ function parseTextRaw(raw,fname){
    Each entry: [canonicalField, [exact header, ...fallbacks in priority order]]
    Matching is: strip to lowercase alphanum+space, then exact → startsWith → contains */
 var FIELD_PATTERNS=[
+  ['recordId',           ['record id - primary key(tenille)','record id','primary key','record id - primary key']],
   ['roleTitle',          ['role title']],
   ['location',           ['location']],
   ['dept',               ['department','dept','team']],
@@ -1492,6 +1493,10 @@ function genReport(){
   var prevMap={};
   if(prevRecord&&prevRecord.rows){
     prevRecord.rows.forEach(function(r){
+      /* Primary key index */
+      var rid=(r.recordId||'').trim().toUpperCase();
+      if(rid)prevMap['id:'+rid]=r;
+      /* Role title fallback */
       var key=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
       if(key&&!prevMap[key])prevMap[key]=r;
       var key2=key+'|'+(r.hm||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
@@ -1499,6 +1504,10 @@ function genReport(){
     });
   }
   function getPrev(r){
+    /* Try primary key first */
+    var rid=(r.recordId||'').trim().toUpperCase();
+    if(rid&&prevMap['id:'+rid])return prevMap['id:'+rid];
+    /* Fallback to role title + HM */
     var rt=(r.roleTitle||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
     var hm=(r.hm||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
     return prevMap[rt+'|'+hm]||prevMap[rt]||null;
@@ -1694,6 +1703,8 @@ function genReport(){
       scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
 
       var prev=getPrev(r);
+      var isNew=prevRecord&&!prev; /* has a prev record to compare against, but this role wasn't in it */
+
       if(prev){
         scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);
         iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);
@@ -1717,33 +1728,36 @@ function genReport(){
       var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()===''||assV===0;
       var f2IsNA=(r.iv2||'').trim().toLowerCase()==='n/a'||(r.iv2||'').trim().toLowerCase()==='na'||iv2V===0;
 
-      H+='<tr style="border-bottom:1px solid #f0efeb;">';
+      H+='<tr style="border-bottom:1px solid '+(isNew?'#bbf7d0':'#f0efeb')+';'+(isNew?'background:#f0fdf4;border-left:3px solid #16a34a;':'')+'">';
       /* Role + location + date range */
       H+='<td style="padding:6px 8px;font-weight:500;">';
+      H+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
       H+=escH(r.roleTitle||'—');
       if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
-      if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
+      if(isNew)H+='<span style="background:#16a34a;color:#fff;font-size:9px;font-weight:500;padding:1px 7px;border-radius:99px;white-space:nowrap;">New role</span>';
+      H+='</div>';
+      if(dateRange)H+='<span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
       H+='</td>';
       H+='<td style="padding:6px 8px;white-space:nowrap;">'+pBadge(r.priority)+'</td>';
       H+='<td style="padding:6px 8px;text-align:center;'+drStyle+'font-size:11px;">'+(drV?drV+'d':'—')+'</td>';
       /* Screened */
-      H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';
-      H+=dc(deltaVal(scrV,prev,'screenedToday'));
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+dv(scrV)+'</td>';
+      H+=isNew?'<td></td>':dc(deltaVal(scrV,prev,'screenedToday'));
       /* Assessment */
-      H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+assDisp+'</td>';
-      H+=dc(prev&&!assIsNA?deltaVal(assV,prev,'assessment'):null);
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+assDisp+'</td>';
+      H+=isNew?'<td></td>':dc(prev&&!assIsNA?deltaVal(assV,prev,'assessment'):null);
       /* F1 */
-      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+f1Disp+'</td>';
-      H+=dc(iv1V>0?deltaVal(iv1V,prev,'iv1'):null);
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f1Disp+'</td>';
+      H+=isNew?'<td></td>':dc(iv1V>0?deltaVal(iv1V,prev,'iv1'):null);
       /* F2 */
-      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+f2Disp+'</td>';
-      H+=dc(prev&&!f2IsNA?deltaVal(iv2V,prev,'iv2'):null);
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f2Disp+'</td>';
+      H+=isNew?'<td></td>':dc(prev&&!f2IsNA?deltaVal(iv2V,prev,'iv2'):null);
       /* Final */
-      H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+finDisp+'</td>';
-      H+=dc(finV>0?deltaVal(finV,prev,'finalIv'):null);
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+finDisp+'</td>';
+      H+=isNew?'<td></td>':dc(finV>0?deltaVal(finV,prev,'finalIv'):null);
       /* In Stages */
-      H+='<td style="padding:6px 7px;text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+dv(stgV)+'</td>';
-      H+=dc(deltaVal(stgV,prev,'totalInStages'));
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#bbf7d0':'#fdf8ff')+';font-weight:700;color:'+(isNew?'#15803d':'#7e22ce')+';">'+dv(stgV)+'</td>';
+      H+=isNew?'<td></td>':dc(deltaVal(stgV,prev,'totalInStages'));
       /* Target Met */
       H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;">'+metBadge(r.stageTargetMet)+'</td>';
       /* Confidence */
