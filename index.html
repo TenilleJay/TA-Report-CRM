@@ -1373,7 +1373,7 @@ function computeSnap(rows){
     if(p==='high')s.priHigh++;else if(p==='low')s.priLow++;else s.priMid++;
     s.recruiting+=n(r.recruiterScreening);s.screenedToday+=n(r.screenedToday);s.interviewConductedToday+=n(r.interviewConductedToday);s.sourcedToday+=n(r.sourcedToday);s.calendly+=n(r.calendly);
     s.iv1+=n(r.iv1);s.iv2+=n(r.iv2);s.finalIv+=n(r.finalIv);s.assessment+=n(r.assessment);
-    var tis=n(r.totalInStages)||(n(r.iv1)+n(r.iv2)+n(r.finalIv)+n(r.assessment));s.totalInStages+=tis;
+    var tis=n(r.iv1)+n(r.iv2)+n(r.finalIv); /* always F1+F2+Final */s.totalInStages+=tis;
     var conf=(r.confidence||'').toLowerCase();
     if(conf.indexOf('track')>-1)s.onTrack++;else if(conf.indexOf('uncertain')>-1)s.uncertain++;else if(conf.indexOf('delay')>-1)s.delayed++;
     var met=(r.stageTargetMet||'').toLowerCase();
@@ -1699,16 +1699,16 @@ function genReport(){
 
     rows.forEach(function(r){
       var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
-      var stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
+      var stgV=iv1V+iv2V+finV; /* In Stages = F1 + F2 + Final only */
       scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
 
       var prev=getPrev(r);
-      var isNew=prevRecord&&!prev; /* has a prev record to compare against, but this role wasn't in it */
+      var isNew=prevRecord&&!prev;
 
       if(prev){
         scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);
         iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);
-        stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv)+n(prev.assessment));
+        stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv); /* prev In Stages = F1+F2+Final only */
       }
 
       var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
@@ -1717,16 +1717,21 @@ function genReport(){
 
       function stageDisp(val, raw){
         var r2=(raw||'').trim().toLowerCase();
-        if(r2==='n/a'||r2==='na'||r2==='-'||r2==='') return '<span style="color:#ccc;font-size:13px;">&#x2715;</span>';
-        if(val===0) return '<span style="color:#ccc;font-size:13px;">&#x2715;</span>';
-        return '<span style="font-weight:600;">'+val+'</span>';
+        /* True N/A — show ✕ */
+        if(r2==='n/a'||r2==='na'||r2==='-')return'<span style="color:#ccc;font-size:13px;">&#x2715;</span>';
+        /* Empty cell — show ✕ */
+        if(r2==='')return'<span style="color:#ccc;font-size:13px;">&#x2715;</span>';
+        /* Zero — show — */
+        if(val===0)return'<span style="color:#aaa;">—</span>';
+        /* Number — show value */
+        return'<span style="font-weight:600;">'+val+'</span>';
       }
       var assDisp=stageDisp(assV, r.assessment);
       var f1Disp=stageDisp(iv1V, r.iv1);
       var f2Disp=stageDisp(iv2V, r.iv2);
       var finDisp=stageDisp(finV, r.finalIv);
-      var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()===''||assV===0;
-      var f2IsNA=(r.iv2||'').trim().toLowerCase()==='n/a'||(r.iv2||'').trim().toLowerCase()==='na'||iv2V===0;
+      var f2IsNA=(r.iv2||'').trim().toLowerCase()==='n/a'||(r.iv2||'').trim().toLowerCase()==='na';
+      var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()==='n/a'||(r.assessment||'').trim()==='';
 
       H+='<tr style="border-bottom:1px solid '+(isNew?'#bbf7d0':'#f0efeb')+';'+(isNew?'background:#f0fdf4;border-left:3px solid #16a34a;':'')+'">';
       /* Role + location + date range */
@@ -2251,10 +2256,10 @@ function genAccum(){
 
       hmRows.forEach(function(r){
         var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
-        var stgV=n(r.totalInStages)||(iv1V+iv2V+finV+assV);
+        var stgV=iv1V+iv2V+finV; /* always F1+F2+Final, ignore CSV totalInStages */
         scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
         var prev=getPrevRow(r);
-        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv)+n(prev.assessment));}
+        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv));}
         var drV=parseInt(r.daysRemaining)||0;
         var drStyle=drV<0?'color:#dc2626;font-weight:700':drV>0&&drV<=5?'color:#d97706;font-weight:600':'';
         var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
