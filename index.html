@@ -599,11 +599,11 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
       <div class="tw"><table>
         <thead><tr>
           <th class="gr">Date</th><th class="gr">Member</th><th class="gr">Dept</th><th class="gr">Type</th>
-          <th class="gd">Screened</th><th class="gd">Sourced</th><th class="gd">Calendly</th>
+          <th class="gd">Screened</th><th class="gd">Sourced</th><th class="gd">Calendly</th><th class="gd">IV Conducted</th>
           <th class="gp">IV1</th><th class="gp">IV2</th><th class="gp">Final</th><th class="gp">Assess</th>
           <th class="gc">Total Stages</th>
           <th class="gn">On Track</th><th class="gn">Uncertain</th><th class="gn">Delayed</th>
-          <th class="gc">Stage Met</th><th class="gc">Open Roles</th>
+          <th class="gc">Stage Met</th><th class="gc">Open Roles</th><th class="gn">Offer Accepted</th>
           <th></th>
         </tr></thead>
         <tbody id="arc-body"><tr><td colspan="17"><div class="empty">No records.</div></td></tr></tbody>
@@ -1138,7 +1138,8 @@ var FIELD_PATTERNS=[
   ['confidence',         ['confidence (on track / uncertain / delayed)','confidence (on track/uncertain/delayed)','confidence']],
   ['totalInStages',      ['total in stages (auto)','total in stages']],
   ['stageTargetMet',     ['stage target met? (auto)','stage target met (auto)','stage target met?','stage target met']],
-  ['daysRemaining',      ['days remaining (auto)','days remaining']]
+  ['daysRemaining',      ['days remaining (auto)','days remaining']],
+  ['offerAccepted',      ['offer accepted','offers accepted']]
 ];
 
 function mapH(raw){
@@ -1367,7 +1368,7 @@ function processUpload(){
 
 /* ════ SNAP COMPUTE ════ */
 function computeSnap(rows){
-  var s={totalRoles:rows.length,recruiting:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,priHigh:0,priMid:0,priLow:0,onTrack:0,uncertain:0,delayed:0,stageMet:0};
+  var s={totalRoles:rows.length,recruiting:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,priHigh:0,priMid:0,priLow:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,offerAccepted:0};
   rows.forEach(function(r){
     var p=(r.priority||'').toLowerCase();
     if(p==='high')s.priHigh++;else if(p==='low')s.priLow++;else s.priMid++;
@@ -1378,6 +1379,7 @@ function computeSnap(rows){
     if(conf.indexOf('track')>-1)s.onTrack++;else if(conf.indexOf('uncertain')>-1)s.uncertain++;else if(conf.indexOf('delay')>-1)s.delayed++;
     var met=(r.stageTargetMet||'').toLowerCase();
     if(met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true')s.stageMet++;
+    s.offerAccepted+=n(r.offerAccepted);
   });
   return s;
 }
@@ -1390,6 +1392,8 @@ function mCol(name){return MCOLS[name]||(function(n){var h=0;for(var i=0;i<n.len
 /* ════ GENERATE REPORT — PDF FORMAT ════ */
 function dv(v){var s=String(v||'').trim();return(s===''||s==='0'||s==='-')?'—':s;}
 function dvRaw(v){var s=String(v||'').trim();return(s===''||s==='-')?0:parseInt(s)||0;}
+/* dvCell: 0/empty→blank, NA/N/A→✕ grey, any number→show it */
+function dvCell(v){var s=String(v===undefined||v===null?'':v).trim();var lo=s.toLowerCase();if(lo==='na'||lo==='n/a')return'<span style="color:#aaa;font-size:10px;">✕</span>';if(s===''||s==='0'||s==='-')return'';return s;}
 function dc(v){
   if(v===null||v===undefined)return'<td></td>';
   var num=parseInt(v);
@@ -1592,6 +1596,14 @@ function genReport(){
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Interviews conducted today</div>';
   H+=tileArrow(snap.interviewConductedToday,prevSnap?prevSnap.interviewConductedToday:null);
   H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.interviewConductedToday+' '+(snap.interviewConductedToday===1?'interview':'interviews')+' conducted</div>';
+  H+='</div>';
+
+  /* Tile: Offer Accepted */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;background:#f0fdf4;">';
+  H+='<div style="font-size:28px;font-weight:800;color:#16a34a;line-height:1;">'+(snap.offerAccepted||0)+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;margin-top:4px;">Offer Accepted</div>';
+  H+=tileArrow(snap.offerAccepted||0,prevSnap?prevSnap.offerAccepted||0:null);
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+(snap.offerAccepted||0)+' offer'+(snap.offerAccepted!==1?'s':'')+' accepted</div>';
   H+='</div>';
 
   /* Tile 3: Total in interview stages */
@@ -1978,7 +1990,7 @@ function renderArchive(){
   var mf=(document.getElementById('arc-mb')||{value:'all'}).value;
   var fil=all.filter(function(r){return(mf==='all'||r.member===mf)&&(!q||(r.date+' '+r.member).toLowerCase().indexOf(q)>-1);}).reverse();
   var tb=document.getElementById('arc-body');if(!tb)return;
-  if(!fil.length){tb.innerHTML='<tr><td colspan="17"><div class="empty">No records.</div></td></tr>';return;}
+  if(!fil.length){tb.innerHTML='<tr><td colspan="19"><div class="empty">No records.</div></td></tr>';return;}
   var arcIndex=[];
   tb.innerHTML=fil.map(function(r,i){
     arcIndex.push(r);
@@ -1989,10 +2001,12 @@ function renderArchive(){
     +'<td style="font-size:11px;color:var(--text3);">'+escH(r.dept||'—')+'</td>'
     +'<td><span class="badge bb">'+escH(r.roleType||'rec')+'</span></td>'
     +'<td style="text-align:center;">'+s.screenedToday+'</td><td style="text-align:center;">'+s.sourcedToday+'</td><td style="text-align:center;">'+s.calendly+'</td>'
+    +'<td style="text-align:center;font-weight:600;color:#7c3aed;">'+(s.interviewConductedToday||0)+'</td>'
     +'<td style="text-align:center;">'+s.iv1+'</td><td style="text-align:center;">'+s.iv2+'</td><td style="text-align:center;">'+s.finalIv+'</td><td style="text-align:center;">'+s.assessment+'</td>'
     +'<td style="text-align:center;font-weight:700;color:#7e22ce;">'+s.totalInStages+'</td>'
     +'<td><span class="badge bg">'+s.onTrack+'</span></td><td><span class="badge ba">'+s.uncertain+'</span></td><td><span class="badge br">'+s.delayed+'</span></td>'
     +'<td><span class="badge bp">'+(s.stageMet||0)+'</span></td><td>'+s.totalRoles+'</td>'
+    +'<td style="text-align:center;font-weight:700;color:#16a34a;">'+(s.offerAccepted||0)+'</td>'
     +'<td style="white-space:nowrap;">'
     +'<button class="btn btn-sm" onclick="arcLoad('+i+')">Load</button> '
     +'<button class="btn btn-sm" style="color:var(--red);border-color:var(--red);" onclick="arcDel('+i+')">Del</button>'
@@ -2067,7 +2081,7 @@ function genAccum(){
 
   /* Aggregate snap across all records */
   function aggSnap(recs){
-    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,priHigh:0,priMid:0,priLow:0};
+    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,priHigh:0,priMid:0,priLow:0,offerAccepted:0};
     recs.forEach(function(r){
       var sn=r.snap||computeSnap(r.rows||[]);
       Object.keys(s).forEach(function(k){s[k]+=(sn[k]||0);});
@@ -2105,7 +2119,7 @@ function genAccum(){
   H+='</div></div>';
 
   /* ── TEAM OVERVIEW TILES ── */
-  H+='<div style="display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid #e4e2da;">';
+  H+='<div style="display:grid;grid-template-columns:repeat(8,1fr);border-bottom:1px solid #e4e2da;">';
   /* Tile 1 — Open roles */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.totalRoles+'</div>';
@@ -2118,19 +2132,31 @@ function genAccum(){
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
   H+=tileArrow(teamSnap.screenedToday,prevSnap?prevSnap.screenedToday:null);
   H+='</div>';
-  /* Tile 3 — Total in stages */
+  /* Tile 3 — IV Conducted */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#7c3aed;line-height:1;">'+(teamSnap.interviewConductedToday||0)+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">IV Conducted</div>';
+  H+=tileArrow(teamSnap.interviewConductedToday||0,prevSnap?prevSnap.interviewConductedToday||0:null);
+  H+='</div>';
+  /* Tile 4 — Total in stages */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.totalInStages+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Total in stages</div>';
   H+=tileArrow(teamSnap.totalInStages,prevSnap?prevSnap.totalInStages:null);
   H+='</div>';
-  /* Tile 4 — Stage met */
+  /* Tile 5 — Stage met */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:26px;font-weight:800;color:#1a1a18;line-height:1;">'+teamSnap.stageMet+' / '+teamSnap.totalRoles+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Stage target met</div>';
   H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+Math.round(teamSnap.stageMet/Math.max(teamSnap.totalRoles,1)*100)+'% of roles</div>';
   H+='</div>';
-  /* Tile 5 — Confidence split */
+  /* Tile 6 — Offer Accepted */
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;background:#f0fdf4;">';
+  H+='<div style="font-size:26px;font-weight:800;color:#16a34a;line-height:1;">'+(teamSnap.offerAccepted||0)+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;margin-top:4px;">Offer Accepted</div>';
+  H+=tileArrow(teamSnap.offerAccepted||0,prevSnap?prevSnap.offerAccepted||0:null);
+  H+='</div>';
+  /* Tile 7 — Confidence split */
   H+='<div style="padding:14px 10px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Confidence split</div>';
   H+='<div style="display:flex;gap:10px;align-items:flex-end;">';
@@ -2138,7 +2164,7 @@ function genAccum(){
   H+='<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#d97706;">'+teamSnap.uncertain+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Uncertain</div></div>';
   H+='<div style="text-align:center;"><div style="font-size:20px;font-weight:800;color:#dc2626;">'+teamSnap.delayed+'</div><div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;">Delayed</div></div>';
   H+='</div></div>';
-  /* Tile 6 — Priority split */
+  /* Tile 8 — Priority split */
   H+='<div style="padding:14px 10px;background:#f5f4f0;">';
   H+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Priority split</div>';
   H+='<div><span class="badge bh" style="margin-bottom:4px;display:inline-block;">High: '+teamSnap.priHigh+'</span><br>';
@@ -2155,6 +2181,7 @@ function genAccum(){
   H+='</div>';
 
   /* ── PER-RECRUITER SECTIONS ── */
+  function deltaVal(todayVal,prevRow,field){if(!prevRow)return null;return n(todayVal)-n(prevRow[field]||0);}
   dayRecs.forEach(function(rec){
     var member=rec.member;
     var col=mCol(member);
@@ -2256,44 +2283,55 @@ function genAccum(){
 
       hmRows.forEach(function(r){
         var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
-        var stgV=iv1V+iv2V+finV; /* always F1+F2+Final, ignore CSV totalInStages */
+        var stgV=iv1V+iv2V+finV;
         scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
         var prev=getPrevRow(r);
-        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.totalInStages)||(n(prev.iv1)+n(prev.iv2)+n(prev.finalIv));}
+        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv);}
         var drV=parseInt(r.daysRemaining)||0;
         var drStyle=drV<0?'color:#dc2626;font-weight:700':drV>0&&drV<=5?'color:#d97706;font-weight:600':'';
         var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
-        var assDisp=(r.assessment||'').toLowerCase()==='na'||!r.assessment?'N/A':dv(assV);
-        var f2disp=(r.iv2||'').toLowerCase()==='n/a'?'N/A':dv(iv2V);
+        var isNew=prevRec&&!prev;
 
-        /* delta helper */
-        function dCell(today,prevRow,field){
-          if(!prevRow)return'<td style="text-align:center;color:#aaa;font-size:10px;">—</td>';
-          var d=n(today)-n(prevRow[field]||0);
-          if(d===0)return'<td style="text-align:center;color:#aaa;font-size:10px;">—</td>';
-          return'<td style="text-align:center;font-weight:700;font-size:10px;color:'+(d>0?'#16a34a':'#dc2626')+';">'+(d>0?'+':'')+d+'</td>';
+        function stageDisp(val,raw){
+          var r2=(raw||'').trim().toLowerCase();
+          if(r2==='n/a'||r2==='na'||r2==='-'||r2==='')return'<span style="color:#ccc;font-size:13px;">&#x2715;</span>';
+          if(val===0)return'<span style="color:#aaa;">—</span>';
+          return'<span style="font-weight:600;">'+val+'</span>';
         }
+        var assDisp=stageDisp(assV,r.assessment);
+        var f1Disp=stageDisp(iv1V,r.iv1);
+        var f2Disp=stageDisp(iv2V,r.iv2);
+        var finDisp=stageDisp(finV,r.finalIv);
+        var f2IsNA=(r.iv2||'').trim().toLowerCase()==='n/a'||(r.iv2||'').trim().toLowerCase()==='na';
+        var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()==='n/a'||(r.assessment||'').trim()==='';
 
-        H+='<tr style="border-bottom:1px solid #f0efeb;">';
+        H+='<tr style="border-bottom:1px solid '+(isNew?'#bbf7d0':'#f0efeb')+';'+(isNew?'background:#f0fdf4;border-left:3px solid #16a34a;':'')+'">';
         H+='<td style="padding:6px 8px;font-weight:500;border-right:1px solid #e4e2da;">';
         H+=escH(r.roleTitle||'—');
         if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
+        if(isNew)H+='<span style="background:#16a34a;color:#fff;font-size:9px;font-weight:500;padding:1px 7px;border-radius:99px;white-space:nowrap;margin-left:4px;">New role</span>';
         if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
         H+='</td>';
         H+='<td style="padding:6px 8px;border-right:1px solid #e4e2da;">'+pBadge(r.priority)+'</td>';
         H+='<td style="padding:6px 8px;text-align:center;'+drStyle+'font-size:11px;border-right:1px solid #e4e2da;">'+(drV?drV+'d':'—')+'</td>';
         /* Screened */
-        H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+dv(scrV)+'</td>';H+=dCell(scrV,prev,'screenedToday');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+dv(scrV)+'</td>';
+        H+=isNew?'<td></td>':dc(deltaVal(scrV,prev,'screenedToday'));
         /* Assessment */
-        H+='<td style="padding:6px 7px;text-align:center;background:#f9fff9;">'+assDisp+'</td>';H+=dCell(assV,prev,'assessment');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+assDisp+'</td>';
+        H+=isNew?'<td></td>':dc(prev&&!assIsNA?deltaVal(assV,prev,'assessment'):null);
         /* F1 */
-        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(iv1V)+'</td>';H+=dCell(iv1V,prev,'iv1');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f1Disp+'</td>';
+        H+=isNew?'<td></td>':dc(iv1V>0?deltaVal(iv1V,prev,'iv1'):null);
         /* F2 */
-        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+f2disp+'</td>';H+=dCell(iv2V,prev,'iv2');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f2Disp+'</td>';
+        H+=isNew?'<td></td>':dc(prev&&!f2IsNA?deltaVal(iv2V,prev,'iv2'):null);
         /* Final */
-        H+='<td style="padding:6px 7px;text-align:center;background:#faf9ff;">'+dv(finV)+'</td>';H+=dCell(finV,prev,'finalIv');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+finDisp+'</td>';
+        H+=isNew?'<td></td>':dc(finV>0?deltaVal(finV,prev,'finalIv'):null);
         /* In Stages */
-        H+='<td style="padding:6px 7px;text-align:center;background:#fdf8ff;font-weight:800;color:#7e22ce;">'+dv(stgV)+'</td>';H+=dCell(stgV,prev,'totalInStages');
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#bbf7d0':'#fdf8ff')+';font-weight:700;color:'+(isNew?'#15803d':'#7e22ce')+';">'+dv(stgV)+'</td>';
+        H+=isNew?'<td></td>':dc(deltaVal(stgV,prev,'totalInStages'));
         /* Met */
         H+='<td style="padding:6px 8px;text-align:center;background:#fff7ed;border-left:1px solid #e4e2da;">'+metBadge(r.stageTargetMet)+'</td>';
         /* Confidence */
@@ -2304,18 +2342,12 @@ function genAccum(){
       /* Totals row */
       H+='<tr style="background:#f5f4f0;font-weight:700;border-top:2px solid #e4e2da;">';
       H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;font-style:italic;border-right:1px solid #e4e2da;">Total · '+escH(hm)+'</td>';
-      var totals=[[scrSum,scrSumP,'screenedToday'],[assSum,assSumP,'assessment'],[iv1Sum,iv1SumP,'iv1'],[iv2Sum,iv2SumP,'iv2'],[finSum,finSumP,'finalIv'],[stgSum,stgSumP,'totalInStages']];
-      totals.forEach(function(t,i){
-        var d=prevRec?t[0]-t[1]:null;
-        var dC=d===null?'#aaa':d>0?'#16a34a':d<0?'#dc2626':'#aaa';
-        var dS=d===null?'—':d===0?'—':(d>0?'+':'')+d;
-        var isStg=i===5;
-        var br=i<5?'border-right:1px solid #e4e2da;':'';
-        H+='<td style="padding:5px 7px;text-align:center;background:'+(isStg?'#fdf8ff':'#f9fff9');
-        if(i>=2)H=H.replace('#f9fff9','#faf9ff');
-        H+='"><span style="font-weight:700;color:'+(isStg?'#7e22ce':'#1a1a18')+';">'+t[0]+'</span></td>';
-        H+='<td style="padding:5px 7px;text-align:center;font-size:10px;font-weight:700;color:'+dC+';'+br+'">'+dS+'</td>';
-      });
+      H+='<td style="padding:5px 7px;text-align:center;">'+scrSum+'</td>'+dc(prevRec?scrSum-scrSumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;">'+assSum+'</td>'+dc(prevRec?assSum-assSumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;">'+iv1Sum+'</td>'+dc(prevRec?iv1Sum-iv1SumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;">'+iv2Sum+'</td>'+dc(prevRec?iv2Sum-iv2SumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;">'+finSum+'</td>'+dc(prevRec?finSum-finSumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;color:#7e22ce;">'+stgSum+'</td>'+dc(prevRec?stgSum-stgSumP:null);
       H+='<td style="background:#fff7ed;border-left:1px solid #e4e2da;"></td><td style="background:#ecfdf5;"></td>';
       H+='</tr>';
       H+='</tbody></table></div>';
@@ -2407,13 +2439,13 @@ function runCmp(){
 
   /* Aggregate snap for a set of records */
   function aggSnap(recs){
-    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,recruiting:0};
+    var s={totalRoles:0,screenedToday:0,interviewConductedToday:0,sourcedToday:0,calendly:0,iv1:0,iv2:0,finalIv:0,assessment:0,totalInStages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,recruiting:0,offerAccepted:0};
     recs.forEach(function(r){var snap=r.snap||computeSnap(r.rows||[]);
-      s.totalRoles+=snap.totalRoles||0;s.screenedToday+=snap.screenedToday||0;s.sourcedToday+=snap.sourcedToday||0;
+      s.totalRoles+=snap.totalRoles||0;s.screenedToday+=snap.screenedToday||0;s.interviewConductedToday+=snap.interviewConductedToday||0;s.sourcedToday+=snap.sourcedToday||0;
       s.calendly+=snap.calendly||0;s.iv1+=snap.iv1||0;s.iv2+=snap.iv2||0;s.finalIv+=snap.finalIv||0;
       s.assessment+=snap.assessment||0;s.totalInStages+=snap.totalInStages||0;
       s.onTrack+=snap.onTrack||0;s.uncertain+=snap.uncertain||0;s.delayed+=snap.delayed||0;
-      s.stageMet+=snap.stageMet||0;s.recruiting+=snap.recruiting||0;
+      s.stageMet+=snap.stageMet||0;s.recruiting+=snap.recruiting||0;s.offerAccepted+=snap.offerAccepted||0;
     });
     return s;
   }
@@ -2437,21 +2469,24 @@ function runCmp(){
 
   /* ══ ① OVERVIEW TILES ══ */
   var tileData=[
-    {l:'Open roles',      a:sA.totalRoles,    b:sB.totalRoles},
-    {l:'Total in stages', a:sA.totalInStages, b:sB.totalInStages},
-    {l:'Screened',        a:sA.screenedToday, b:sB.screenedToday},
-    {l:'Sourced',         a:sA.sourcedToday,  b:sB.sourcedToday},
-    {l:'On track',        a:sA.onTrack,       b:sB.onTrack,   col:'#16a34a'},
-    {l:'Uncertain',       a:sA.uncertain,     b:sB.uncertain, col:'#d97706'},
-    {l:'Delayed',         a:sA.delayed,       b:sB.delayed,   col:'#dc2626'},
-    {l:'Stage met',       a:sA.stageMet,      b:sB.stageMet}
+    {l:'Open roles',      a:sA.totalRoles,             b:sB.totalRoles},
+    {l:'Total in stages', a:sA.totalInStages,          b:sB.totalInStages},
+    {l:'Screened',        a:sA.screenedToday,          b:sB.screenedToday},
+    {l:'IV conducted',    a:sA.interviewConductedToday,b:sB.interviewConductedToday},
+    {l:'Sourced',         a:sA.sourcedToday,           b:sB.sourcedToday},
+    {l:'On track',        a:sA.onTrack,                b:sB.onTrack,   col:'#16a34a'},
+    {l:'Uncertain',       a:sA.uncertain,              b:sB.uncertain, col:'#d97706'},
+    {l:'Delayed',         a:sA.delayed,                b:sB.delayed,   col:'#dc2626'},
+    {l:'Stage met',       a:sA.stageMet,               b:sB.stageMet},
+    {l:'Offer accepted',  a:sA.offerAccepted||0,       b:sB.offerAccepted||0, col:'#16a34a'}
   ];
-  H+='<div style="display:grid;grid-template-columns:repeat(8,1fr);border:1px solid #e4e2da;border-top:none;border-bottom:none;background:#fff;">';
+  H+='<div style="display:grid;grid-template-columns:repeat(10,1fr);border:1px solid #e4e2da;border-top:none;border-bottom:none;background:#fff;">';
   tileData.forEach(function(tile,i){
     var d=tile.b-tile.a;
     var dC=d>0?'#16a34a':d<0?'#dc2626':'#888';
     var dS=d===0?'±0':(d>0?'+':'')+d;
-    H+='<div style="padding:14px 10px;border-right:'+(i<7?'1px solid #e4e2da':'none')+';border-bottom:1px solid #e4e2da;">';
+    var isOffer=tile.l==='Offer accepted';
+    H+='<div style="padding:14px 10px;border-right:'+(i<9?'1px solid #e4e2da':'none')+';border-bottom:1px solid #e4e2da;'+(isOffer?'background:#f0fdf4;':'')+'">';
     H+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:6px;">'+escH(tile.l)+'</div>';
     H+='<div style="font-size:22px;font-weight:800;color:'+(tile.col||'#1a1a18')+';line-height:1;">'+tile.b+'</div>';
     H+='<div style="font-size:11px;margin-top:4px;display:flex;gap:6px;align-items:center;">';
@@ -2531,20 +2566,22 @@ function runCmp(){
 
     /* ── LAYER 2: SUMMARY TILES ── */
     var sumTiles=[
-      {l:'Screened',    a:sma.screenedToday, b:smb.screenedToday},
-      {l:'Sourced',     a:sma.sourcedToday,  b:smb.sourcedToday},
-      {l:'F1',          a:sma.iv1,           b:smb.iv1},
-      {l:'F2',          a:sma.iv2,           b:smb.iv2},
-      {l:'Final',       a:sma.finalIv,       b:smb.finalIv},
-      {l:'In Stages',   a:sma.totalInStages, b:smb.totalInStages, accent:col},
-      {l:'Stage Met',   a:sma.stageMet,      b:smb.stageMet}
+      {l:'Screened',    a:sma.screenedToday,          b:smb.screenedToday},
+      {l:'IV conducted',a:sma.interviewConductedToday||0, b:smb.interviewConductedToday||0},
+      {l:'Sourced',     a:sma.sourcedToday,           b:smb.sourcedToday},
+      {l:'F1',          a:sma.iv1,                    b:smb.iv1},
+      {l:'F2',          a:sma.iv2,                    b:smb.iv2},
+      {l:'Final',       a:sma.finalIv,                b:smb.finalIv},
+      {l:'In Stages',   a:sma.totalInStages,          b:smb.totalInStages, accent:col},
+      {l:'Stage Met',   a:sma.stageMet,               b:smb.stageMet},
+      {l:'Offer Accepted', a:sma.offerAccepted||0,    b:smb.offerAccepted||0, accent:'#16a34a', bg:'#f0fdf4'}
     ];
-    H+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e4e2da;">';
+    H+='<div style="display:grid;grid-template-columns:repeat(9,1fr);border-bottom:1px solid #e4e2da;">';
     sumTiles.forEach(function(t,i){
       var d=t.b-t.a;
       var dC=d>0?'#16a34a':d<0?'#dc2626':'#888';
       var dS=d===0?'—':(d>0?'+':'')+d;
-      H+='<div style="padding:12px 8px;text-align:center;border-right:'+(i<6?'1px solid #e4e2da':'none')+';background:'+(i===5?'#fdf8ff':'#fff')+'">';
+      H+='<div style="padding:12px 8px;text-align:center;border-right:'+(i<8?'1px solid #e4e2da':'none')+';background:'+(t.bg?t.bg:i===6?'#fdf8ff':'#fff')+'">';
       H+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:4px;">'+escH(t.l)+'</div>';
       H+='<div style="font-size:20px;font-weight:800;color:'+(t.accent||'#1a1a18')+';line-height:1;">'+t.b+'</div>';
       H+='<div style="font-size:10px;color:#aaa;margin-top:2px;">'+t.a+' → '+t.b+'</div>';
@@ -2606,20 +2643,23 @@ function runCmp(){
 
       /* Stage columns */
       grpCols.forEach(function(c,ci){
+        var rawA=rA?String(rA[c.fA]||'').trim():'';
+        var rawB=rB?String(rB[c.fB]||'').trim():'';
         var vA=rA?n(rA[c.fA]):null;
         var vB=rB?n(rB[c.fB]):null;
         var d=(vA!==null&&vB!==null)?vB-vA:null;
         var dC=d===null?'#aaa':d>0?'#16a34a':d<0?'#dc2626':'#aaa';
         var dS=d===null?'':d===0?'':'('+(d>0?'+':'')+d+')';
-        /* Special display for N/A fields */
-        var naA=(c.l==='Assessment'&&rA&&(rA.assessment||'').toLowerCase()==='na')||(c.l==='F2'&&rA&&(rA.iv2||'').toLowerCase()==='n/a');
-        var naB=(c.l==='Assessment'&&rB&&(rB.assessment||'').toLowerCase()==='na')||(c.l==='F2'&&rB&&(rB.iv2||'').toLowerCase()==='n/a');
-        var dispA=naA?'N/A':(vA!==null?(vA||'—'):'—');
-        var dispB=naB?'N/A':(vB!==null?(vB||'—'):'—');
+        function stageDisp(val,raw){
+          var r2=(raw||'').trim().toLowerCase();
+          if(r2==='n/a'||r2==='na'||r2==='-'||r2==='')return'<span style="color:#ccc;font-size:12px;">&#x2715;</span>';
+          if(val===0)return'<span style="color:#aaa;">—</span>';
+          return'<span style="font-weight:600;">'+val+'</span>';
+        }
+        var dispA=rA?stageDisp(vA,rawA):'<span style="color:#ccc;">—</span>';
+        var dispB=rB?stageDisp(vB,rawB):'<span style="color:#ccc;">—</span>';
         var br=ci<grpCols.length-1?'border-right:1px solid #e4e2da;':'';
-        /* Date A cell — muted */
-        H+='<td style="padding:6px 7px;text-align:center;background:'+c.bg+';opacity:.5;color:#555;font-size:11px;">'+dispA+'</td>';
-        /* Date B cell — strong + delta inline */
+        H+='<td style="padding:6px 7px;text-align:center;background:'+c.bg+';opacity:.5;font-size:11px;">'+dispA+'</td>';
         H+='<td style="padding:6px 7px;text-align:center;background:'+c.bg+';'+br+'">';
         H+='<span style="font-weight:'+(c.bold?'800':'700')+';color:'+(c.bold?col:'#1a1a18')+';font-size:'+(c.bold?'13':'11')+'px;">'+dispB+'</span>';
         if(dS)H+=' <span style="font-size:10px;font-weight:700;color:'+dC+';">'+dS+'</span>';
@@ -2788,15 +2828,16 @@ var DEPT_COLORS=['#6c63ff','#0891b2','#16a34a','#d97706','#dc2626','#7c3aed','#d
 function deptColor(name){var h=0;for(var i=0;i<name.length;i++){h=((h<<5)-h)+name.charCodeAt(i);h|=0;}return DEPT_COLORS[Math.abs(h)%DEPT_COLORS.length];}
 
 function aggRecs(recs){
-  var t={roles:0,rec:0,scr:0,src:0,cal:0,iv1:0,iv2:0,fin:0,ass:0,tot:0,onT:0,unc:0,del:0,met:0,days:0};
+  var t={roles:0,rec:0,scr:0,ivConducted:0,src:0,cal:0,iv1:0,iv2:0,fin:0,ass:0,tot:0,onT:0,unc:0,del:0,met:0,days:0,offerAccepted:0};
   t.days=recs.length;
   recs.forEach(function(r){
     var s=r.snap||{};
     t.roles=Math.max(t.roles,s.totalRoles||0);
-    t.rec+=s.recruiting||0;t.scr+=s.screenedToday||0;t.src+=s.sourcedToday||0;
+    t.rec+=s.recruiting||0;t.scr+=s.screenedToday||0;t.ivConducted+=s.interviewConductedToday||0;t.src+=s.sourcedToday||0;
     t.cal+=s.calendly||0;t.iv1+=s.iv1||0;t.iv2+=s.iv2||0;
     t.fin+=s.finalIv||0;t.ass+=s.assessment||0;t.tot+=s.totalInStages||0;
     t.onT+=s.onTrack||0;t.unc+=s.uncertain||0;t.del+=s.delayed||0;t.met+=s.stageMet||0;
+    t.offerAccepted+=s.offerAccepted||0;
   });
   return t;
 }
@@ -2839,26 +2880,46 @@ function wkConfidenceBar(t){
 }
 
 function wkDailyTable(recs){
+  function stageDisp(val,raw){
+    var r2=(raw||'').trim().toLowerCase();
+    if(r2==='n/a'||r2==='na'||r2==='-'||r2==='')return'<span style="color:#ccc;font-size:12px;">&#x2715;</span>';
+    if(val===0)return'<span style="color:#aaa;">—</span>';
+    return'<span style="font-weight:600;">'+val+'</span>';
+  }
   var h='<div style="overflow-x:auto;"><table class="rt"><thead><tr>';
-  h+='<th>Date</th><th>Dept</th><th>Screened</th><th>Sourced</th><th>Calendly</th><th>IV1</th><th>IV2</th><th>Final</th><th>Assess</th><th>Stages</th><th>On Track</th><th>Uncertain</th><th>Delayed</th><th>Stage Met</th>';
+  h+='<th>Date</th><th>Dept</th>';
+  h+='<th style="background:#f0fdf4;color:#166534;">Screened</th>';
+  h+='<th style="background:#f0fdf4;color:#166534;">Assessment</th>';
+  h+='<th style="background:#f5f3ff;color:#5b21b6;">F1</th>';
+  h+='<th style="background:#f5f3ff;color:#5b21b6;">F2</th>';
+  h+='<th style="background:#f5f3ff;color:#5b21b6;">Final</th>';
+  h+='<th style="background:#fdf4ff;color:#7e22ce;">In Stages</th>';
+  h+='<th style="background:#fff7ed;color:#9a3412;">Stage Met</th>';
+  h+='<th style="background:#ecfdf5;color:#065f46;">Confidence</th>';
+  h+='<th style="background:#f5f3ff;color:#5b21b6;">IV Conducted</th>';
+  h+='<th style="background:#f0fdf4;color:#166534;">Offer Accepted</th>';
   h+='</tr></thead><tbody>';
   recs.sort(function(a,b){return a.date>b.date?1:-1;}).forEach(function(r){
     var s=r.snap||{};
+    var assV=s.assessment||0, iv1V=s.iv1||0, iv2V=s.iv2||0, finV=s.finalIv||0;
     h+='<tr>';
     h+='<td style="font-weight:500;white-space:nowrap;">'+escH(fmtShort(r.date))+'</td>';
     h+='<td style="font-size:11px;color:var(--text3);">'+escH(r.dept||'—')+'</td>';
-    h+='<td style="text-align:center;">'+s.screenedToday+'</td>';
-    h+='<td style="text-align:center;">'+s.sourcedToday+'</td>';
-    h+='<td style="text-align:center;">'+s.calendly+'</td>';
-    h+='<td style="text-align:center;">'+s.iv1+'</td>';
-    h+='<td style="text-align:center;">'+s.iv2+'</td>';
-    h+='<td style="text-align:center;">'+s.finalIv+'</td>';
-    h+='<td style="text-align:center;">'+s.assessment+'</td>';
-    h+='<td style="text-align:center;font-weight:700;color:#7e22ce;">'+s.totalInStages+'</td>';
-    h+='<td style="text-align:center;"><span class="badge bg">'+s.onTrack+'</span></td>';
-    h+='<td style="text-align:center;"><span class="badge ba">'+s.uncertain+'</span></td>';
-    h+='<td style="text-align:center;"><span class="badge br">'+s.delayed+'</span></td>';
-    h+='<td style="text-align:center;"><span class="badge bp">'+(s.stageMet||0)+'</span></td>';
+    h+='<td style="text-align:center;background:#f9fff9;">'+(s.screenedToday>0?'<span style="font-weight:600;">'+s.screenedToday+'</span>':'<span style="color:#aaa;">—</span>')+'</td>';
+    h+='<td style="text-align:center;background:#f9fff9;">'+stageDisp(assV,''+assV)+'</td>';
+    h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(iv1V,''+iv1V)+'</td>';
+    h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(iv2V,''+iv2V)+'</td>';
+    h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(finV,''+finV)+'</td>';
+    h+='<td style="text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+(s.totalInStages||0)+'</td>';
+    h+='<td style="text-align:center;background:#fff7ed;">'+metBadge(r.snap&&r.snap.stageMet>0?'Met':'Behind')+'</td>';
+    h+='<td style="text-align:center;background:#ecfdf5;">';
+    var onT=s.onTrack||0,unc=s.uncertain||0,del=s.delayed||0;
+    if(onT)h+='<span style="color:#16a34a;font-weight:600;font-size:11px;">'+onT+' On Track</span> ';
+    if(unc)h+='<span style="color:#d97706;font-weight:600;font-size:11px;">'+unc+' Unc.</span> ';
+    if(del)h+='<span style="color:#dc2626;font-weight:600;font-size:11px;">'+del+' Del.</span>';
+    h+='</td>';
+    h+='<td style="text-align:center;background:#faf9ff;color:#7c3aed;font-weight:600;">'+(s.interviewConductedToday||0)+'</td>';
+    h+='<td style="text-align:center;background:#f0fdf4;color:#16a34a;font-weight:600;">'+(s.offerAccepted||0)+'</td>';
     h+='</tr>';
   });
   h+='</tbody></table></div>';
@@ -2917,7 +2978,7 @@ function renderWeeklyByDept(all,wk,weekRange,weekDates){
   H+='<div style="font-size:20px;font-weight:800;color:#fff;">'+escH(wk)+'</div>';
   H+='<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">'+weekRange+' &nbsp;·&nbsp; '+depts.length+' dept'+(depts.length!==1?'s':'')+' &nbsp;·&nbsp; '+all.length+' record'+(all.length!==1?'s':'')+' &nbsp;·&nbsp; '+weekDates.length+' day'+(weekDates.length!==1?'s':'')+' uploaded</div></div>';
   H+='<div style="display:flex;gap:20px;">';
-  [{l:'Total Screened',v:teamT.scr,c:'#7dd3fc'},{l:'Total Sourced',v:teamT.src,c:'#f9a8d4'},{l:'Total in Stages',v:teamT.tot,c:'#c4b5fd'},{l:'Stage Met',v:teamT.met,c:'#86efac'}].forEach(function(t){
+  [{l:'Total Screened',v:teamT.scr,c:'#7dd3fc'},{l:'Interviews Today',v:teamT.ivConducted,c:'#a78bfa'},{l:'Total Sourced',v:teamT.src,c:'#f9a8d4'},{l:'Total in Stages',v:teamT.tot,c:'#c4b5fd'},{l:'Stage Met',v:teamT.met,c:'#86efac'},{l:'Offer Accepted',v:teamT.offerAccepted,c:'#4ade80'}].forEach(function(t){
     H+='<div style="text-align:center;"><div style="font-size:22px;font-weight:800;color:'+t.c+'">'+t.v+'</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px;">'+t.l+'</div></div>';
   });
   H+='</div></div>';
@@ -3188,8 +3249,8 @@ function compileWeekly(){fillWeekSels();renderWeekly();toast('Compiled.');logS('
 function exportWeekly(){var wk=(document.getElementById('wk-sel')||{value:''}).value;if(!wk){toast('Select a week.');return;}expCSV(ls().filter(function(r){return r.weekKey===wk;}),'WeeklyReport_'+wk+'.csv');toast('Exported.');}
 function exportAll(){var all=ls();if(!all.length){toast('No records.');return;}expCSV(all,'TA_Archive.csv');toast('Exported '+all.length+' records.');}
 function expCSV(recs,fname){
-  var H=['Date','Member','Type','Week','Open Roles','Rec Screen','Screened','Sourced','Calendly','IV1','IV2','Final','Assessment','Total Stages','Stage Met','On Track','Uncertain','Delayed'];
-  var rows=recs.map(function(r){var s=r.snap||{};return[r.date,r.member,r.roleType,r.weekKey,s.totalRoles,s.recruiting,s.screenedToday,s.sourcedToday,s.calendly,s.iv1,s.iv2,s.finalIv,s.assessment,s.totalInStages,s.stageMet||0,s.onTrack,s.uncertain,s.delayed];});
+  var H=['Date','Member','Type','Week','Open Roles','Rec Screen','Screened Today','Interviews Conducted Today','Sourced','Calendly','IV1','IV2','Final','Assessment','Total Stages','Stage Met','On Track','Uncertain','Delayed','Offer Accepted'];
+  var rows=recs.map(function(r){var s=r.snap||{};return[r.date,r.member,r.roleType,r.weekKey,s.totalRoles,s.recruiting,s.screenedToday,s.interviewConductedToday||0,s.sourcedToday,s.calendly,s.iv1,s.iv2,s.finalIv,s.assessment,s.totalInStages,s.stageMet||0,s.onTrack,s.uncertain,s.delayed,s.offerAccepted||0];});
   var csv=[H].concat(rows).map(function(r){return r.map(function(c){return'"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();
 }
@@ -3372,8 +3433,8 @@ function buildAccumEmailHTML(date,recs){
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   var dateFmt=fmtLong(date);
   /* Aggregate totals */
-  var tot={roles:0,screened:0,sourced:0,iv1:0,iv2:0,finalIv:0,assessment:0,stages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0};
-  recs.forEach(function(r){var s=r.snap||{};tot.roles+=s.totalRoles||0;tot.screened+=s.screenedToday||0;tot.sourced+=s.sourcedToday||0;tot.iv1+=s.iv1||0;tot.iv2+=s.iv2||0;tot.finalIv+=s.finalIv||0;tot.assessment+=s.assessment||0;tot.stages+=s.totalInStages||0;tot.onTrack+=s.onTrack||0;tot.uncertain+=s.uncertain||0;tot.delayed+=s.delayed||0;tot.stageMet+=s.stageMet||0;});
+  var tot={roles:0,screened:0,sourced:0,ivConducted:0,iv1:0,iv2:0,finalIv:0,assessment:0,stages:0,onTrack:0,uncertain:0,delayed:0,stageMet:0,offerAccepted:0};
+  recs.forEach(function(r){var s=r.snap||{};tot.roles+=s.totalRoles||0;tot.screened+=s.screenedToday||0;tot.sourced+=s.sourcedToday||0;tot.ivConducted+=s.interviewConductedToday||0;tot.iv1+=s.iv1||0;tot.iv2+=s.iv2||0;tot.finalIv+=s.finalIv||0;tot.assessment+=s.assessment||0;tot.stages+=s.totalInStages||0;tot.onTrack+=s.onTrack||0;tot.uncertain+=s.uncertain||0;tot.delayed+=s.delayed||0;tot.stageMet+=s.stageMet||0;tot.offerAccepted+=s.offerAccepted||0;});
   var H='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f4f0;margin:0;padding:20px;}';
   H+='.wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e4e2da;}';
   H+='.hdr{background:#1a1a18;color:#fff;padding:20px 24px;}.hdr h1{margin:0;font-size:22px;font-weight:800;}.hdr p{margin:4px 0 0;font-size:13px;opacity:.6;}';
@@ -3387,9 +3448,11 @@ function buildAccumEmailHTML(date,recs){
   H+='<div class="hdr"><h1>ManifestGlobal TA Daily Summary</h1><p>'+esc(dateFmt)+' &nbsp;·&nbsp; '+recs.length+' recruiter'+(recs.length!==1?'s':'')+' &nbsp;·&nbsp; '+tot.roles+' open roles</p></div>';
   H+='<div class="tiles">';
   H+='<div class="tile"><div class="tile-n">'+tot.screened+'</div><div class="tile-l">Screened</div></div>';
+  H+='<div class="tile"><div class="tile-n">'+tot.ivConducted+'</div><div class="tile-l">IV Conducted</div></div>';
   H+='<div class="tile"><div class="tile-n">'+tot.stages+'</div><div class="tile-l">In Stages</div></div>';
   H+='<div class="tile"><div class="tile-n" style="color:#16a34a;">'+tot.onTrack+'</div><div class="tile-l">On Track</div></div>';
   H+='<div class="tile"><div class="tile-n" style="color:#dc2626;">'+tot.delayed+'</div><div class="tile-l">Delayed</div></div>';
+  H+='<div class="tile"><div class="tile-n" style="color:#16a34a;font-weight:800;">'+tot.offerAccepted+'</div><div class="tile-l">Offer Accepted</div></div>';
   H+='</div>';
   H+='<div class="sec"><div class="sec-head">By Recruiter &amp; Department</div>';
   H+='<table><thead><tr><th>Recruiter</th><th>Dept</th><th>Roles</th><th>Screened</th><th>Sourced</th><th>IV1</th><th>IV2</th><th>Final</th><th>Stages</th><th>On Track</th><th>Uncertain</th><th>Delayed</th><th>Stage Met</th></tr></thead><tbody>';
