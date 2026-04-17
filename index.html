@@ -1572,7 +1572,7 @@ function genReport(){
   }
 
   /* ══ OVERVIEW TILES ══ */
-  H+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e4e2da;">';
+  H+='<div style="display:grid;grid-template-columns:repeat(8,1fr);border-bottom:1px solid #e4e2da;">';
 
   /* Tile 1: Open roles */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
@@ -1581,8 +1581,17 @@ function genReport(){
   H+='<div style="font-size:11px;color:#aaa;margin-top:2px;">'+snap.totalRoles+' HC'+(locStr?' · '+escH(locStr):'')+'</div>';
   H+='</div>';
 
-  /* Tile 2: Screened today */
-  var scrDelta=prevSnap?snap.screenedToday-prevSnap.screenedToday:null;
+  /* Tile 2: Offer Accepted — neutral if 0, green if > 0 */
+  var offerAcc=snap.offerAccepted||0;
+  var offerGreen=offerAcc>0;
+  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;'+(offerGreen?'background:#f0fdf4;':'')+'">';
+  H+='<div style="font-size:28px;font-weight:800;color:'+(offerGreen?'#16a34a':col)+';line-height:1;">'+offerAcc+'</div>';
+  H+='<div style="font-size:10px;font-weight:700;color:'+(offerGreen?'#166534':'#888')+';text-transform:uppercase;margin-top:4px;">Offer Accepted</div>';
+  H+=tileArrow(offerAcc,prevSnap?prevSnap.offerAccepted||0:null);
+  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+offerAcc+' offer'+(offerAcc!==1?'s':'')+' accepted</div>';
+  H+='</div>';
+
+  /* Tile 3: Screened today */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.screenedToday+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Screened today</div>';
@@ -1590,20 +1599,12 @@ function genReport(){
   H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.screenedToday+' '+(snap.screenedToday===1?'candidate':'candidates')+' today</div>';
   H+='</div>';
 
-  /* Tile 3: Interviews Conducted Today */
+  /* Tile 4: Interviews Conducted Today */
   H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;">';
   H+='<div style="font-size:28px;font-weight:800;color:'+col+';line-height:1;">'+snap.interviewConductedToday+'</div>';
   H+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-top:4px;">Interviews conducted today</div>';
   H+=tileArrow(snap.interviewConductedToday,prevSnap?prevSnap.interviewConductedToday:null);
   H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+snap.interviewConductedToday+' '+(snap.interviewConductedToday===1?'interview':'interviews')+' conducted</div>';
-  H+='</div>';
-
-  /* Tile: Offer Accepted */
-  H+='<div style="padding:14px 12px;border-right:1px solid #e4e2da;background:#f0fdf4;">';
-  H+='<div style="font-size:28px;font-weight:800;color:#16a34a;line-height:1;">'+(snap.offerAccepted||0)+'</div>';
-  H+='<div style="font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;margin-top:4px;">Offer Accepted</div>';
-  H+=tileArrow(snap.offerAccepted||0,prevSnap?prevSnap.offerAccepted||0:null);
-  H+='<div style="font-size:11px;color:#aaa;margin-top:1px;">'+(snap.offerAccepted||0)+' offer'+(snap.offerAccepted!==1?'s':'')+' accepted</div>';
   H+='</div>';
 
   /* Tile 3: Total in interview stages */
@@ -1686,6 +1687,7 @@ function genReport(){
     var grpCols=[
       {l:'Screened',bg:'#f0fdf4',tc:'#166534',span:2},
       {l:'Assessment',bg:'#f0fdf4',tc:'#166534',span:2},
+      {l:'IV Conducted',bg:'#ede9fe',tc:'#5b21b6',span:2},
       {l:'F1',bg:'#f5f3ff',tc:'#5b21b6',span:2},
       {l:'F2',bg:'#f5f3ff',tc:'#5b21b6',span:2},
       {l:'Final',bg:'#f5f3ff',tc:'#5b21b6',span:2},
@@ -1706,21 +1708,22 @@ function genReport(){
     H+='</tr>';
     H+='</thead><tbody>';
 
-    var scrSum=0,assSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
-    var scrSumP=0,assSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
+    var scrSum=0,assSum=0,ivcSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
+    var scrSumP=0,assSumP=0,ivcSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
 
     rows.forEach(function(r){
-      var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
+      var scrV=n(r.screenedToday),assV=n(r.assessment),ivcV=n(r.interviewConductedToday),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
       var stgV=iv1V+iv2V+finV; /* In Stages = F1 + F2 + Final only */
-      scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
+      scrSum+=scrV;assSum+=assV;ivcSum+=ivcV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
 
       var prev=getPrev(r);
       var isNew=prevRecord&&!prev;
 
       if(prev){
         scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);
+        ivcSumP+=n(prev.interviewConductedToday);
         iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);
-        stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv); /* prev In Stages = F1+F2+Final only */
+        stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv);
       }
 
       var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
@@ -1763,6 +1766,9 @@ function genReport(){
       /* Assessment */
       H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+assDisp+'</td>';
       H+=isNew?'<td></td>':dc(prev&&!assIsNA?deltaVal(assV,prev,'assessment'):null);
+      /* IV Conducted */
+      H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#ede9fe':'#ede9fe')+';">'+(ivcV>0?'<span style="font-weight:600;">'+ivcV+'</span>':'<span style="color:#aaa;">—</span>')+'</td>';
+      H+=isNew?'<td></td>':dc(deltaVal(ivcV,prev,'interviewConductedToday'));
       /* F1 */
       H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f1Disp+'</td>';
       H+=isNew?'<td></td>':dc(iv1V>0?deltaVal(iv1V,prev,'iv1'):null);
@@ -1787,6 +1793,7 @@ function genReport(){
     H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;font-style:italic;">Total · '+escH(hm)+'</td>';
     H+='<td style="padding:5px 7px;text-align:center;">'+scrSum+'</td>'+dc(prevRecord?scrSum-scrSumP:null);
     H+='<td style="padding:5px 7px;text-align:center;">'+assSum+'</td>'+dc(prevRecord?assSum-assSumP:null);
+    H+='<td style="padding:5px 7px;text-align:center;">'+ivcSum+'</td>'+dc(prevRecord?ivcSum-ivcSumP:null);
     H+='<td style="padding:5px 7px;text-align:center;">'+iv1Sum+'</td>'+dc(prevRecord?iv1Sum-iv1SumP:null);
     H+='<td style="padding:5px 7px;text-align:center;">'+iv2Sum+'</td>'+dc(prevRecord?iv2Sum-iv2SumP:null);
     H+='<td style="padding:5px 7px;text-align:center;">'+finSum+'</td>'+dc(prevRecord?finSum-finSumP:null);
@@ -2260,6 +2267,7 @@ function genAccum(){
       var pairCols=[
         {l:'Screened',   bg:'#f0fdf4',tc:'#166534', f:'screenedToday'},
         {l:'Assessment', bg:'#f0fdf4',tc:'#166534', f:'assessment'},
+        {l:'IV Conducted',bg:'#ede9fe',tc:'#5b21b6', f:'interviewConductedToday'},
         {l:'F1',         bg:'#f5f3ff',tc:'#5b21b6', f:'iv1'},
         {l:'F2',         bg:'#f5f3ff',tc:'#5b21b6', f:'iv2'},
         {l:'Final',      bg:'#f5f3ff',tc:'#5b21b6', f:'finalIv'},
@@ -2278,15 +2286,15 @@ function genAccum(){
       });
       H+='</tr></thead><tbody>';
 
-      var scrSum=0,assSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
-      var scrSumP=0,assSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
+      var scrSum=0,assSum=0,ivcSum=0,iv1Sum=0,iv2Sum=0,finSum=0,stgSum=0;
+      var scrSumP=0,assSumP=0,ivcSumP=0,iv1SumP=0,iv2SumP=0,finSumP=0,stgSumP=0;
 
       hmRows.forEach(function(r){
-        var scrV=n(r.screenedToday),assV=n(r.assessment),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
+        var scrV=n(r.screenedToday),assV=n(r.assessment),ivcV=n(r.interviewConductedToday),iv1V=n(r.iv1),iv2V=n(r.iv2),finV=n(r.finalIv);
         var stgV=iv1V+iv2V+finV;
-        scrSum+=scrV;assSum+=assV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
+        scrSum+=scrV;assSum+=assV;ivcSum+=ivcV;iv1Sum+=iv1V;iv2Sum+=iv2V;finSum+=finV;stgSum+=stgV;
         var prev=getPrevRow(r);
-        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv);}
+        if(prev){scrSumP+=n(prev.screenedToday);assSumP+=n(prev.assessment);ivcSumP+=n(prev.interviewConductedToday||0);iv1SumP+=n(prev.iv1);iv2SumP+=n(prev.iv2);finSumP+=n(prev.finalIv);stgSumP+=n(prev.iv1)+n(prev.iv2)+n(prev.finalIv);}
         var drV=parseInt(r.daysRemaining)||0;
         var drStyle=drV<0?'color:#dc2626;font-weight:700':drV>0&&drV<=5?'color:#d97706;font-weight:600':'';
         var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
@@ -2320,6 +2328,9 @@ function genAccum(){
         /* Assessment */
         H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#f9fff9')+';">'+assDisp+'</td>';
         H+=isNew?'<td></td>':dc(prev&&!assIsNA?deltaVal(assV,prev,'assessment'):null);
+        /* IV Conducted */
+        H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#ede9fe':'#ede9fe')+';">'+(ivcV>0?'<span style="font-weight:600;">'+ivcV+'</span>':'<span style="color:#aaa;">—</span>')+'</td>';
+        H+=isNew?'<td></td>':dc(deltaVal(ivcV,prev,'interviewConductedToday'));
         /* F1 */
         H+='<td style="padding:6px 7px;text-align:center;background:'+(isNew?'#dcfce7':'#faf9ff')+';">'+f1Disp+'</td>';
         H+=isNew?'<td></td>':dc(iv1V>0?deltaVal(iv1V,prev,'iv1'):null);
@@ -2344,6 +2355,7 @@ function genAccum(){
       H+='<td colspan="3" style="padding:5px 8px;font-size:10px;color:#888;text-align:right;font-style:italic;border-right:1px solid #e4e2da;">Total · '+escH(hm)+'</td>';
       H+='<td style="padding:5px 7px;text-align:center;">'+scrSum+'</td>'+dc(prevRec?scrSum-scrSumP:null);
       H+='<td style="padding:5px 7px;text-align:center;">'+assSum+'</td>'+dc(prevRec?assSum-assSumP:null);
+      H+='<td style="padding:5px 7px;text-align:center;">'+ivcSum+'</td>'+dc(prevRec?ivcSum-ivcSumP:null);
       H+='<td style="padding:5px 7px;text-align:center;">'+iv1Sum+'</td>'+dc(prevRec?iv1Sum-iv1SumP:null);
       H+='<td style="padding:5px 7px;text-align:center;">'+iv2Sum+'</td>'+dc(prevRec?iv2Sum-iv2SumP:null);
       H+='<td style="padding:5px 7px;text-align:center;">'+finSum+'</td>'+dc(prevRec?finSum-finSumP:null);
@@ -2594,6 +2606,7 @@ function runCmp(){
     var grpCols=[
       {l:'Screened',    bg:'#f0fdf4',tc:'#166534', fA:'screenedToday',fB:'screenedToday'},
       {l:'Assessment',  bg:'#f0fdf4',tc:'#166534', fA:'assessment',   fB:'assessment'},
+      {l:'IV Conducted',bg:'#ede9fe',tc:'#5b21b6', fA:'interviewConductedToday',fB:'interviewConductedToday'},
       {l:'F1',          bg:'#f5f3ff',tc:'#5b21b6', fA:'iv1',          fB:'iv1'},
       {l:'F2',          bg:'#f5f3ff',tc:'#5b21b6', fA:'iv2',          fB:'iv2'},
       {l:'Final',       bg:'#f5f3ff',tc:'#5b21b6', fA:'finalIv',      fB:'finalIv'},
@@ -2890,36 +2903,37 @@ function wkDailyTable(recs){
   h+='<th>Date</th><th>Dept</th>';
   h+='<th style="background:#f0fdf4;color:#166534;">Screened</th>';
   h+='<th style="background:#f0fdf4;color:#166534;">Assessment</th>';
+  h+='<th style="background:#ede9fe;color:#5b21b6;">IV Conducted</th>';
   h+='<th style="background:#f5f3ff;color:#5b21b6;">F1</th>';
   h+='<th style="background:#f5f3ff;color:#5b21b6;">F2</th>';
   h+='<th style="background:#f5f3ff;color:#5b21b6;">Final</th>';
   h+='<th style="background:#fdf4ff;color:#7e22ce;">In Stages</th>';
   h+='<th style="background:#fff7ed;color:#9a3412;">Stage Met</th>';
   h+='<th style="background:#ecfdf5;color:#065f46;">Confidence</th>';
-  h+='<th style="background:#f5f3ff;color:#5b21b6;">IV Conducted</th>';
   h+='<th style="background:#f0fdf4;color:#166534;">Offer Accepted</th>';
   h+='</tr></thead><tbody>';
   recs.sort(function(a,b){return a.date>b.date?1:-1;}).forEach(function(r){
     var s=r.snap||{};
-    var assV=s.assessment||0, iv1V=s.iv1||0, iv2V=s.iv2||0, finV=s.finalIv||0;
+    var assV=s.assessment||0, ivcV=s.interviewConductedToday||0, iv1V=s.iv1||0, iv2V=s.iv2||0, finV=s.finalIv||0;
+    var offerAcc=s.offerAccepted||0;
     h+='<tr>';
     h+='<td style="font-weight:500;white-space:nowrap;">'+escH(fmtShort(r.date))+'</td>';
     h+='<td style="font-size:11px;color:var(--text3);">'+escH(r.dept||'—')+'</td>';
     h+='<td style="text-align:center;background:#f9fff9;">'+(s.screenedToday>0?'<span style="font-weight:600;">'+s.screenedToday+'</span>':'<span style="color:#aaa;">—</span>')+'</td>';
     h+='<td style="text-align:center;background:#f9fff9;">'+stageDisp(assV,''+assV)+'</td>';
+    h+='<td style="text-align:center;background:#ede9fe;">'+(ivcV>0?'<span style="font-weight:600;color:#5b21b6;">'+ivcV+'</span>':'<span style="color:#aaa;">—</span>')+'</td>';
     h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(iv1V,''+iv1V)+'</td>';
     h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(iv2V,''+iv2V)+'</td>';
     h+='<td style="text-align:center;background:#faf9ff;">'+stageDisp(finV,''+finV)+'</td>';
     h+='<td style="text-align:center;background:#fdf8ff;font-weight:700;color:#7e22ce;">'+(s.totalInStages||0)+'</td>';
-    h+='<td style="text-align:center;background:#fff7ed;">'+metBadge(r.snap&&r.snap.stageMet>0?'Met':'Behind')+'</td>';
+    h+='<td style="text-align:center;background:#fff7ed;">'+metBadge(s.stageMet>0?'Met':'Behind')+'</td>';
     h+='<td style="text-align:center;background:#ecfdf5;">';
     var onT=s.onTrack||0,unc=s.uncertain||0,del=s.delayed||0;
     if(onT)h+='<span style="color:#16a34a;font-weight:600;font-size:11px;">'+onT+' On Track</span> ';
     if(unc)h+='<span style="color:#d97706;font-weight:600;font-size:11px;">'+unc+' Unc.</span> ';
     if(del)h+='<span style="color:#dc2626;font-weight:600;font-size:11px;">'+del+' Del.</span>';
     h+='</td>';
-    h+='<td style="text-align:center;background:#faf9ff;color:#7c3aed;font-weight:600;">'+(s.interviewConductedToday||0)+'</td>';
-    h+='<td style="text-align:center;background:#f0fdf4;color:#16a34a;font-weight:600;">'+(s.offerAccepted||0)+'</td>';
+    h+='<td style="text-align:center;background:'+(offerAcc>0?'#f0fdf4':'#fff')+';color:'+(offerAcc>0?'#16a34a':'#aaa')+';font-weight:'+(offerAcc>0?'600':'400')+';">'+(offerAcc>0?offerAcc:'—')+'</td>';
     h+='</tr>';
   });
   h+='</tbody></table></div>';
