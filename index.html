@@ -242,10 +242,9 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
       <p class="lgn-title">TA Daily Report Hub</p>
       <p class="lgn-sub">Select your name to continue.</p>
       <div class="lgn-grid" id="lgn-name-grid">
-        <button class="lgn-btn" onclick="lgnPick(this,'Vipul')">Vipul</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Kartikey')">Kartikey</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Gaurav')">Gaurav</button>
-        <button class="lgn-btn" onclick="lgnPick(this,'Gloria')">Gloria</button>
+        <button class="lgn-btn" onclick="lgnPick(this,'Josephine')">Josephine</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Josh')">Josh</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Admin')">Admin</button>
       </div>
@@ -385,6 +384,7 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
     <div id="sb-today">Wed, 15 Apr 2026</div>
     <div id="sb-last" style="margin-top:2px;">No records yet</div>
   </div>
+  <button class="sb-signout-btn" onclick="showLanding()" style="margin-bottom:6px;">⌂ Back to Home</button>
   <button class="sb-signout-btn" onclick="doSignOut()">← Sign out</button>
 </aside>
 
@@ -417,6 +417,7 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
           <select id="up-dept" style="width:200px;">
             <option value="">— select department</option>
             <option value="Student Placement">Student Placement</option>
+            <option value="Student Experience">Student Experience</option>
             <option value="Talent">Talent</option>
             <option value="Finance">Finance</option>
             <option value="Global">Global</option>
@@ -774,12 +775,11 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 <script>
 /* ════ CREDENTIALS ════ */
 var HUB_MEMBERS=[
-  {name:'Vipul',    password:'vipul2026',    color:'#16a34a', role:'Recruiter'},
-  {name:'Kartikey', password:'kartikey2026', color:'#e02020', role:'Sourcer'},
-  {name:'Gaurav',   password:'gaurav2026',   color:'#d97706', role:'Recruiter'},
-  {name:'Gloria',   password:'gloria2026',   color:'#7c3aed', role:'Recruiter'},
-  {name:'Josh',     password:'josh2026',     color:'#2563eb', role:'Manager'},
-  {name:'Admin',    password:'admin2026',    color:'#e02020', role:'Admin'}
+  {name:'Kartikey',  password:'kartikey2026', color:'#e02020', role:'Sourcer'},
+  {name:'Gaurav',    password:'gaurav2026',   color:'#d97706', role:'Recruiter'},
+  {name:'Josephine', password:'jose2026',     color:'#0891b2', role:'Recruiter'},
+  {name:'Josh',      password:'josh2026',     color:'#2563eb', role:'Manager'},
+  {name:'Admin',     password:'admin2026',    color:'#e02020', role:'Admin'}
 ];
 var HUB_SPECIAL=['Josh','Admin']; /* users who can see Cloud Sync */
 
@@ -1385,7 +1385,7 @@ function computeSnap(rows){
 }
 
 /* ════ MEMBER COLORS ════ */
-var MCOLS={'Kartikey':'#6c63ff','Gloria':'#16a34a','Vipul':'#0891b2','Gaurav':'#d97706'};
+var MCOLS={'Kartikey':'#6c63ff','Josephine':'#0891b2','Gaurav':'#d97706'};
 var MC=['#6c63ff','#16a34a','#0891b2','#d97706','#dc2626','#7c3aed'];
 function mCol(name){return MCOLS[name]||(function(n){var h=0;for(var i=0;i<n.length;i++){h=((h<<5)-h)+n.charCodeAt(i);h|=0;}return MC[Math.abs(h)%MC.length];})(name);}
 
@@ -1962,7 +1962,7 @@ function fillCmpDepts(){
   var member=(document.getElementById('cmp-member')||{value:''}).value||P.member;
   var depts={};
   /* Always seed with all static departments from the upload page */
-  var ALL_DEPTS=['Student Placement','Talent','Finance','Global','Central Marketing','Central Operations','Product','Engineering','K12 Cialfo & BridgeU','Explore','Kaaiser'];
+  var ALL_DEPTS=['Student Placement','Student Experience','Talent','Finance','Global','Central Marketing','Central Operations','Product','Engineering','K12 Cialfo & BridgeU','Explore','Kaaiser'];
   ALL_DEPTS.forEach(function(d){depts[d]=1;});
   /* Add current session dept so it appears immediately after upload */
   if(P.dept)depts[P.dept]=1;
