@@ -1536,16 +1536,23 @@ function genReport(){
   var locSet={};P.rows.forEach(function(r){if(r.location)locSet[r.location]=1;});
   var locStr=Object.keys(locSet).join(' & ')||'';
 
-  /* Group rows by HM */
+  /* Helper — true if a row has been offer-accepted */
+  function isOfferAccepted(r){
+    var v=String(r.offerAccepted||'').trim().toLowerCase();
+    return v==='yes'||v==='1'||v==='true'||v==='y'||v==='accepted';
+  }
+
+  /* Group rows by HM — exclude offer-accepted roles */
   var hmOrder=[],hmMap={};
   P.rows.forEach(function(r){
+    if(isOfferAccepted(r))return;
     var hm=r.hm||'Unknown';
     if(!hmMap[hm]){hmMap[hm]=[];hmOrder.push(hm);}
     hmMap[hm].push(r);
   });
 
-  /* High-priority rows for sourcing section */
-  var highRows=P.rows.filter(function(r){return(r.priority||'').toLowerCase()==='high';});
+  /* High-priority rows for sourcing section — exclude offer-accepted roles */
+  var highRows=P.rows.filter(function(r){return!isOfferAccepted(r)&&(r.priority||'').toLowerCase()==='high';});
 
   var H='<div id="report-card" style="background:#fff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">';
 
@@ -1824,6 +1831,55 @@ function genReport(){
       H+='<td style="padding:6px 10px;color:#555;">'+escH(r.location||'—')+'</td>';
       H+='<td style="padding:6px 10px;text-align:center;font-weight:700;color:#db2777;">'+(srcV||'—')+'</td>';
       H+=dc(srcDelta);
+      H+='</tr>';
+    });
+    H+='</tbody></table></div></div>';
+  }
+
+  /* ══ OFFER ACCEPTED DETAILS — only shown when ≥1 role accepted ══ */
+  var acceptedRows=P.rows.filter(function(r){return isOfferAccepted(r);});
+  if(acceptedRows.length){
+    H+='<div style="border-top:2px solid #e4e2da;">';
+    H+='<div style="background:#37474f;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">&#10003; Offer Accepted · '+escH(P.dept||'All Roles')+' · '+escH(reportDateShort)+'</div>';
+    H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    H+='<thead><tr style="background:#f8f7f3;">';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Role</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Hiring Manager</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Location</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Priority</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Days Left</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Offer Accepted Date</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Final Stage</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Status</th>';
+    H+='</tr></thead><tbody>';
+    acceptedRows.forEach(function(r,i){
+      var pri=(r.priority||'').toLowerCase();
+      var priCol=pri==='high'?'#c62828':pri==='mid'||pri==='medium'?'#f57c00':'#2e7d32';
+      var drV=parseInt(r.daysRemaining)||0;
+      var drCol=drV<0?'#c62828':drV<=5?'#f57c00':'#7a7569';
+      var drLabel=r.daysRemaining?(drV<0?drV+'d':'+'+drV+'d'):'—';
+      var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
+      var bgRow=i%2===0?'#ffffff':'#fafaf7';
+      H+='<tr style="border-bottom:0.3px solid #f1ede6;background:'+bgRow+';">';
+      H+='<td style="padding:9px 10px;">';
+      H+='<div style="font-weight:700;font-size:11px;color:#1a1814;">'+escH(r.roleTitle||'—')+'</div>';
+      if(dateRange)H+='<div style="font-size:9px;color:#7a7569;margin-top:1px;">'+escH(dateRange)+'</div>';
+      H+='</td>';
+      H+='<td style="padding:9px 10px;">';
+      if(r.hm){
+        var init=(r.hm.trim()[0]||'?').toUpperCase();
+        var hmBg={'K':'#388e3c','H':'#00695c','R':'#1565c0','J':'#283593','T':'#6a1b9a','P':'#ad1457','C':'#e65100'}[init]||'#546e7a';
+        H+='<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#7a7569;">';
+        H+='<span style="width:16px;height:16px;border-radius:50%;background:'+hmBg+';color:#fff;font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;">'+init+'</span>';
+        H+=escH(r.hm)+'</span>';
+      } else { H+='<span style="color:#aaa;">—</span>'; }
+      H+='</td>';
+      H+='<td style="padding:9px 10px;font-size:10px;color:#7a7569;">'+escH(r.location||'—')+'</td>';
+      H+='<td style="padding:9px 10px;font-weight:700;font-size:10px;color:'+priCol+';">'+escH(r.priority||'—')+'</td>';
+      H+='<td style="padding:9px 10px;font-weight:700;font-size:10px;color:'+drCol+';">'+escH(drLabel)+'</td>';
+      H+='<td style="padding:9px 10px;font-size:10px;color:#7a7569;">'+escH(reportDateFmt)+'</td>';
+      H+='<td style="padding:9px 10px;text-align:center;"><span style="display:inline-block;background:#e8f5e9;color:#1b5e20;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;">Offer Accepted</span></td>';
+      H+='<td style="padding:9px 10px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:3px;background:#2e7d32;color:#fff;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;">&#10003; Done</span></td>';
       H+='</tr>';
     });
     H+='</tbody></table></div></div>';
