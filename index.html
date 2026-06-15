@@ -245,6 +245,8 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
         <button class="lgn-btn" onclick="lgnPick(this,'Kartikey')">Kartikey</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Gaurav')">Gaurav</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Josephine')">Josephine</button>
+        <button class="lgn-btn" onclick="lgnPick(this,'Gunjan')">Gunjan</button>
+        <button class="lgn-btn" onclick="lgnPick(this,'Anurag')">Anurag</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Josh')">Josh</button>
         <button class="lgn-btn" onclick="lgnPick(this,'Admin')">Admin</button>
       </div>
@@ -778,6 +780,8 @@ var HUB_MEMBERS=[
   {name:'Kartikey',  password:'kartikey2026', color:'#e02020', role:'Sourcer'},
   {name:'Gaurav',    password:'gaurav2026',   color:'#d97706', role:'Recruiter'},
   {name:'Josephine', password:'josie2026',    color:'#0891b2', role:'Recruiter'},
+  {name:'Gunjan',    password:'gunjan2026',   color:'#059669', role:'Recruiter'},
+  {name:'Anurag',    password:'anurag2026',   color:'#7c3aed', role:'Recruiter'},
   {name:'Josh',      password:'josh2026',     color:'#2563eb', role:'Manager'},
   {name:'Admin',     password:'admin2026',    color:'#e02020', role:'Admin'}
 ];
@@ -1139,7 +1143,8 @@ var FIELD_PATTERNS=[
   ['totalInStages',      ['total in stages (auto)','total in stages']],
   ['stageTargetMet',     ['stage target met? (auto)','stage target met (auto)','stage target met?','stage target met']],
   ['daysRemaining',      ['days remaining (auto)','days remaining']],
-  ['offerAccepted',      ['offer accepted','offers accepted']]
+  ['offerAccepted',      ['offer accepted','offers accepted']],
+  ['sourcingRemarks',    ['sourcing remarks','sourcing remark','sourcing notes','sourcing note','sourcing comment','sourcing comments']]
 ];
 
 function mapH(raw){
@@ -1385,7 +1390,7 @@ function computeSnap(rows){
 }
 
 /* ════ MEMBER COLORS ════ */
-var MCOLS={'Kartikey':'#6c63ff','Josephine':'#0891b2','Gaurav':'#d97706'};
+var MCOLS={'Kartikey':'#6c63ff','Josephine':'#0891b2','Gaurav':'#d97706','Gunjan':'#059669','Anurag':'#7c3aed'};
 var MC=['#6c63ff','#16a34a','#0891b2','#d97706','#dc2626','#7c3aed'];
 function mCol(name){return MCOLS[name]||(function(n){var h=0;for(var i=0;i<n.length;i++){h=((h<<5)-h)+n.charCodeAt(i);h|=0;}return MC[Math.abs(h)%MC.length];})(name);}
 
@@ -1880,6 +1885,48 @@ function genReport(){
       H+='<td style="padding:9px 10px;font-size:10px;color:#7a7569;">'+escH(reportDateFmt)+'</td>';
       H+='<td style="padding:9px 10px;text-align:center;"><span style="display:inline-block;background:#e8f5e9;color:#1b5e20;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;">Offer Accepted</span></td>';
       H+='<td style="padding:9px 10px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:3px;background:#2e7d32;color:#fff;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;">&#10003; Done</span></td>';
+      H+='</tr>';
+    });
+    H+='</tbody></table></div></div>';
+  }
+
+  /* ══ SOURCING REMARKS — only shown when ≥1 role has a remark ══ */
+  var remarkRows=P.rows.filter(function(r){return !isOfferAccepted(r)&&(r.sourcingRemarks||'').trim()!=='';});
+  if(remarkRows.length){
+    H+='<div style="border-top:2px solid #e4e2da;">';
+    H+='<div style="background:#1a1a18;color:#fff;padding:8px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Sourcing Remarks · '+escH(P.dept||'All Roles')+' · '+escH(reportDateShort)+'</div>';
+    H+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    H+='<thead><tr style="background:#f8f7f3;">';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Role</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Hiring Manager</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Priority</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;">Sourced Today</th>';
+    H+='<th style="padding:6px 10px;border-bottom:1px solid #e8e4db;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9e9e9e;min-width:220px;">Sourcing Remarks</th>';
+    H+='</tr></thead><tbody>';
+    remarkRows.forEach(function(r,i){
+      var pri=(r.priority||'').toLowerCase();
+      var priCol=pri==='high'?'#c62828':pri==='mid'||pri==='medium'?'#f57c00':'#2e7d32';
+      var srcV=n(r.sourcedToday);
+      var srcDisplay=srcV>0?'<span style="font-weight:700;color:#1565c0;">'+srcV+'</span>':'<span style="color:#bbb;">—</span>';
+      var dateRange=(r.startDate&&r.targetOfferDate)?r.startDate+' → '+r.targetOfferDate:'';
+      var bgRow=i%2===0?'#ffffff':'#fafaf7';
+      H+='<tr style="border-bottom:0.3px solid #f1ede6;background:'+bgRow+';">';
+      H+='<td style="padding:9px 10px;">';
+      H+='<div style="font-weight:700;font-size:11px;color:#1a1814;">'+escH(r.roleTitle||'—')+'</div>';
+      if(dateRange)H+='<div style="font-size:9px;color:#7a7569;margin-top:1px;">'+escH(dateRange)+'</div>';
+      H+='</td>';
+      H+='<td style="padding:9px 10px;">';
+      if(r.hm){
+        var init=(r.hm.trim()[0]||'?').toUpperCase();
+        var hmBg={'K':'#388e3c','H':'#00695c','R':'#1565c0','J':'#283593','T':'#6a1b9a','P':'#ad1457','C':'#e65100'}[init]||'#546e7a';
+        H+='<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#7a7569;">';
+        H+='<span style="width:16px;height:16px;border-radius:50%;background:'+hmBg+';color:#fff;font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;">'+init+'</span>';
+        H+=escH(r.hm)+'</span>';
+      } else { H+='<span style="color:#aaa;">—</span>'; }
+      H+='</td>';
+      H+='<td style="padding:9px 10px;font-weight:700;font-size:10px;color:'+priCol+';">'+escH(r.priority||'—')+'</td>';
+      H+='<td style="padding:9px 10px;text-align:center;">'+srcDisplay+'</td>';
+      H+='<td style="padding:9px 10px;font-size:10.5px;color:#3a3a38;line-height:1.5;">'+escH(r.sourcingRemarks||'—')+'</td>';
       H+='</tr>';
     });
     H+='</tbody></table></div></div>';
