@@ -7,21 +7,22 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --dark:#1a1a18;--dark2:#252522;
+  --dark:#0e0e0c;--dark2:#1a1a17;
   --bg:#f0efeb;--bg2:#f5f4f0;--bg3:#fff;
   --border:#e4e2da;--border-dark:rgba(255,255,255,0.1);
   --text:#1a1a18;--text2:#555;--text3:#888;
-  --purple:#6c63ff;--purple-bg:#eef2ff;--purple-text:#4f46e5;
+  --purple:#e02020;--purple-bg:#fff0f0;--purple-text:#b91c1c;
   --green:#16a34a;--green-bg:#f0fdf4;--green-text:#15803d;
   --amber:#d97706;--amber-bg:#fffbeb;--amber-text:#b45309;
   --red:#dc2626;--red-bg:#fef2f2;--red-text:#b91c1c;
+  --brand:#e02020;--brand-dark:#b91c1c;
   --r:12px;--rs:8px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
 #app{display:flex;min-height:100vh;}
 
 /* SIDEBAR */
-#sidebar{width:218px;min-width:218px;background:var(--dark);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.mg-logo-tile{width:36px;height:36px;background:#cc0000;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.mg-logo-tile span{font-size:22px;font-weight:900;color:#fff;font-family:Georgia,"Times New Roman",serif;line-height:1;letter-spacing:-.04em;}.mg-logo-word{line-height:1.1;}.mg-logo-word div{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.015em;}.mg-logo-sub{font-size:9px;color:rgba(255,255,255,0.28);letter-spacing:.09em;text-transform:uppercase;margin-top:3px;}#sidebar{width:218px;min-width:218px;background:var(--dark);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
 .sb-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border-dark);}
 .sb-logo-title{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.01em;}
 .sb-logo-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
@@ -29,9 +30,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sb-group{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:14px 18px 4px;}
 .sb-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.55);}
 .sb-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
-.sb-item.active{background:rgba(108,99,255,0.18);color:var(--purple);}
+.sb-item.active{background:rgba(224,32,32,0.15);color:#e02020;}
 .sb-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.18);flex-shrink:0;}
-.sb-item.active .sb-dot{background:var(--purple);}
+.sb-item.active .sb-dot{background:#e02020;}
 .sb-footer{padding:12px 18px;border-top:1px solid var(--border-dark);font-size:11px;color:rgba(255,255,255,0.3);line-height:1.9;}
 
 /* MAIN */
@@ -151,34 +152,34 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-thumb{background:#d0cec4;border-radius:3px;}
 
 /* ══ LOGIN ══ */
-#login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0efeb;padding:20px;}
-#login-box{background:#1a1a18;border:1px solid #333;border-radius:16px;padding:32px 36px;width:100%;max-width:440px;box-shadow:0 4px 32px rgba(0,0,0,.18);}
-.lgn-logo{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:22px;}
-.lgn-logo-box{width:34px;height:34px;background:#e02020;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;}
-.lgn-logo-name{font-size:17px;font-weight:700;color:#fff;}
-.lgn-title{font-size:16px;font-weight:600;color:#fff;text-align:center;margin-bottom:5px;}
+#login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#141412;padding:20px;position:relative;overflow:hidden;}#login-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 75% 65% at 78% 25%,rgba(190,0,0,0.32) 0%,rgba(130,0,0,0.12) 45%,transparent 70%);pointer-events:none;}
+#login-box{background:#1c1c1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:36px 40px;width:100%;max-width:440px;box-shadow:0 8px 48px rgba(0,0,0,.55);position:relative;z-index:1;}
+.lgn-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;}
+.lgn-logo-box{width:56px;height:56px;background:#cc0000;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;font-family:Georgia,"Times New Roman",serif;box-shadow:0 4px 18px rgba(160,0,0,0.5);letter-spacing:-.04em;line-height:1;}
+.lgn-logo-name{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.05;}
+.lgn-tagline{font-size:10px;color:rgba(255,255,255,0.3);text-align:center;letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px;}.lgn-brands{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:20px;}.lgn-brand-pill{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border:1px solid rgba(255,255,255,0.1);border-radius:99px;}.lgn-title{font-size:15px;font-weight:600;color:#fff;text-align:center;margin-bottom:5px;}
 .lgn-sub{font-size:12px;color:rgba(255,255,255,.42);text-align:center;margin-bottom:20px;line-height:1.6;}
 .lgn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .lgn-btn{padding:12px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:rgba(255,255,255,.06);color:rgba(255,255,255,.8);font-family:inherit;transition:all .15s;}
-.lgn-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
+.lgn-btn:hover{background:rgba(200,0,0,0.18);border-color:rgba(200,0,0,0.45);color:#fff;}
 .lgn-btn.selected{color:#fff;}
-.lgn-continue{width:100%;padding:12px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .2s;}
-.lgn-continue:hover{background:#5b54e8;}
+.lgn-continue{width:100%;padding:12px;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;letter-spacing:.01em;}
+.lgn-continue:hover{background:#c41c1c;}
 #lgn-pw-wrap{display:none;}
 #lgn-pw-input{width:100%;padding:10px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;background:rgba(255,255,255,.08);color:#fff;font-family:inherit;}
 #lgn-pw-input::placeholder{color:rgba(255,255,255,.3);}
-#lgn-pw-input:focus{border-color:var(--purple);}
+#lgn-pw-input:focus{border-color:#cc0000;}
 #lgn-pw-error{font-size:12px;color:#f87171;margin-bottom:10px;min-height:16px;}
 .lgn-back{font-size:12px;color:rgba(255,255,255,.38);cursor:pointer;text-align:center;margin-top:12px;}
 .lgn-back:hover{color:rgba(255,255,255,.7);}
 
 /* ══ LANDING ══ */
-#landing-wrap{display:none;min-height:100vh;background:var(--bg);}
-.lnd-layout{display:flex;min-height:100vh;}
-.lnd-sidebar{width:210px;background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+#landing-wrap{display:none;min-height:100vh;background:#141412;}
+.lnd-layout{display:flex;min-height:100vh;position:relative;}.lnd-layout::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 55% at 80% 15%,rgba(190,0,0,0.35) 0%,rgba(130,0,0,0.15) 40%,transparent 65%);pointer-events:none;z-index:-1;}
+.lnd-sidebar{width:210px;background:#111110;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:1;border-right:1px solid rgba(255,255,255,0.06);}
 .lnd-sb-top{padding:18px 16px 14px;border-bottom:1px solid var(--border-dark);}
 .lnd-sb-logo{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.lnd-sb-logobox{width:26px;height:26px;background:#e02020;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;}
+.lnd-sb-logobox{width:30px;height:30px;background:#e02020;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;letter-spacing:-.02em;}
 .lnd-sb-brand{font-size:13px;font-weight:700;color:#fff;}
 .lnd-sb-user{display:flex;align-items:center;gap:8px;}
 .lnd-sb-av{width:28px;height:28px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
@@ -188,18 +189,18 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 .lnd-sb-sec{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.28);padding:10px 6px 5px;}
 .lnd-sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:2px;}
 .lnd-sb-item:hover{background:rgba(255,255,255,.06);}
-.lnd-sb-item.active{background:rgba(108,99,255,.28);}
+.lnd-sb-item.active{background:rgba(224,32,32,.2);}
 .lnd-sb-num{width:18px;font-size:10px;font-weight:700;text-align:center;flex-shrink:0;color:rgba(255,255,255,.4);}
-.lnd-sb-item.active .lnd-sb-num{color:var(--purple);}
+.lnd-sb-item.active .lnd-sb-num{color:#e02020;}
 .lnd-sb-lbl{font-size:12px;color:rgba(255,255,255,.55);}
-.lnd-sb-item.active .lnd-sb-lbl{color:#fff;font-weight:600;}
+.lnd-sb-item.active .lnd-sb-lbl{color:#fff;font-weight:700;}
 .lnd-sb-badge{font-size:10px;padding:1px 7px;border-radius:99px;background:rgba(108,99,255,.25);color:#a5b4fc;font-weight:600;margin-left:auto;}
 .lnd-sb-foot{padding:14px 16px;border-top:1px solid var(--border-dark);}
 .lnd-sb-signout{width:100%;padding:8px;background:rgba(255,255,255,.05);border:none;border-radius:7px;font-size:12px;color:rgba(255,255,255,.45);cursor:pointer;font-family:inherit;text-align:left;}
 .lnd-sb-signout:hover{background:rgba(255,255,255,.1);color:#fff;}
 .lnd-main{flex:1;padding:28px 32px;overflow-y:auto;}
-.lnd-welcome{font-size:22px;font-weight:700;color:var(--text);margin-bottom:3px;}
-.lnd-sub{font-size:13px;color:var(--text3);margin-bottom:22px;}
+.lnd-welcome{font-size:22px;font-weight:700;color:#fff;margin-bottom:3px;}
+.lnd-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:22px;}
 .lnd-hero{border-radius:14px;padding:24px 28px;margin-bottom:18px;cursor:pointer;transition:opacity .15s;}
 .lnd-hero:hover{opacity:.93;}
 .lnd-hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;}
@@ -207,16 +208,16 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 .lnd-hero-desc{font-size:13px;margin-bottom:16px;line-height:1.6;opacity:.75;}
 .lnd-hero-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:8px 18px;border-radius:99px;border:none;cursor:pointer;font-family:inherit;}
 .lnd-qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
-.lnd-qcard{background:#fff;border:.5px solid var(--border);border-radius:11px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
-.lnd-qcard:hover{border-color:var(--purple);}
-.lnd-qcard-num{font-size:10px;font-weight:700;color:#aaa;margin-bottom:5px;}
-.lnd-qcard-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.lnd-qcard-desc{font-size:11px;color:#aaa;line-height:1.4;}
+.lnd-qcard{background:rgba(255,255,255,0.05);border:.5px solid rgba(255,255,255,0.1);border-radius:11px;padding:14px 16px;cursor:pointer;transition:all .15s;}
+.lnd-qcard:hover{border-color:#e02020;background:rgba(224,32,32,0.08);}
+.lnd-qcard-num{font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);margin-bottom:5px;}
+.lnd-qcard-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;}
+.lnd-qcard-desc{font-size:11px;color:rgba(255,255,255,0.35);line-height:1.4;}
 .lnd-sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px;}
-.lnd-acc-card{background:#fff;border:.5px solid var(--border);border-radius:9px;padding:11px 14px;cursor:pointer;}
-.lnd-acc-card:hover{background:#f5f4ff;border-color:#b0acf5;}
+.lnd-acc-card{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.09);border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .15s;}
+.lnd-acc-card:hover{background:rgba(224,32,32,0.1);border-color:rgba(224,32,32,0.3);}
 .lnd-acc-num{font-size:10px;color:#bbb;margin-bottom:3px;}
-.lnd-acc-title{font-size:12px;font-weight:600;color:var(--text);}
+.lnd-acc-title{font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);}
 .lnd-accgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 
 /* Sidebar user display when logged in */
@@ -233,12 +234,26 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 <div id="login-wrap">
   <div id="login-box">
     <div class="lgn-logo">
-      <div class="lgn-logo-box">M</div>
-      <span class="lgn-logo-name">ManifestGlobal</span>
+      <!-- M logomark: red rectangle with bold white M, matching brand -->
+      <div style="background:#e02020;width:52px;height:52px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(224,32,32,0.4);">
+        <span style="font-size:32px;font-weight:900;color:#fff;font-family:Georgia,serif;line-height:1;letter-spacing:-.04em;">M</span>
+      </div>
+      <!-- Two-line wordmark: Manifest / Global -->
+      <div style="line-height:1.1;">
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;">Manifest</div>
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;">Global</div>
+      </div>
     </div>
+    <div class="lgn-logo-tagline">Talent Acquisition · Report Hub</div>
 
     <!-- Step 1: Pick name -->
     <div id="lgn-name-step">
+      <div class="lgn-brands" style="margin-bottom:16px;">
+        <span class="lgn-brand-pill">Cialfo</span>
+        <span class="lgn-brand-pill">BridgeU</span>
+        <span class="lgn-brand-pill">Explore</span>
+        <span class="lgn-brand-pill">Kaaiser</span>
+      </div>
       <p class="lgn-title">TA Daily Report Hub</p>
       <p class="lgn-sub">Select your name to continue.</p>
       <div class="lgn-grid" id="lgn-name-grid">
@@ -270,9 +285,9 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 <div class="lnd-layout">
   <div class="lnd-sidebar">
     <div class="lnd-sb-top">
-      <div class="lnd-sb-logo">
-        <div class="lnd-sb-logobox">M</div>
-        <div class="lnd-sb-brand">ManifestGlobal</div>
+      <div class="lnd-sb-logo" style="display:flex;align-items:center;gap:9px;padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
+        <div class="mg-logo-tile" style="width:30px;height:30px;"><span style="font-size:19px;">M</span></div>
+        <div class="mg-logo-word"><div style="font-size:13px;">Manifest</div><div style="font-size:13px;">Global</div></div>
       </div>
       <div class="lnd-sb-user">
         <div class="lnd-sb-av" id="lnd-av">?</div>
@@ -290,9 +305,8 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
       <div class="lnd-sb-sec">Weekly</div>
       <div class="lnd-sb-item" onclick="lndGoTo('weekly')"><div class="lnd-sb-num">4</div><div class="lnd-sb-lbl">Weekly Summary</div></div>
       <div class="lnd-sb-sec">Records</div>
-      <div class="lnd-sb-item" onclick="lndGoTo('accum')"><div class="lnd-sb-num">5</div><div class="lnd-sb-lbl">Accumulated Report</div></div>
-      <div class="lnd-sb-item" onclick="lndGoTo('archive')"><div class="lnd-sb-num">6</div><div class="lnd-sb-lbl">Daily Archive</div></div>
-      <div class="lnd-sb-item" onclick="lndGoTo('schedule')"><div class="lnd-sb-num">7</div><div class="lnd-sb-lbl">Send Report</div></div>
+      <div class="lnd-sb-item" onclick="lndGoTo('archive')"><div class="lnd-sb-num">5</div><div class="lnd-sb-lbl">Daily Archive</div></div>
+      <div class="lnd-sb-item" onclick="lndGoTo('schedule')"><div class="lnd-sb-num">6</div><div class="lnd-sb-lbl">Send Report</div></div>
       <div class="lnd-sb-item" id="lnd-sync-item" style="display:none;" onclick="lndGoTo('sync')"><div class="lnd-sb-num">★</div><div class="lnd-sb-lbl">Cloud Sync</div><span class="lnd-sb-badge">Admin</span></div>
     </div>
     <div class="lnd-sb-foot">
@@ -315,17 +329,17 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
     <!-- Quick links -->
     <div class="lnd-sec-title">Reporting tools</div>
     <div class="lnd-qgrid">
-      <div class="lnd-qcard" style="border-top:2.5px solid #16a34a;" onclick="lndGoTo('report')">
+      <div class="lnd-qcard" style="border-top:2.5px solid #16a34a;background:rgba(255,255,255,0.05);" onclick="lndGoTo('report')">
         <div class="lnd-qcard-num">02</div>
         <div class="lnd-qcard-title">Daily Report</div>
         <div class="lnd-qcard-desc">Auto-generated from the uploaded snapshot</div>
       </div>
-      <div class="lnd-qcard" style="border-top:2.5px solid #d97706;" onclick="lndGoTo('compare')">
+      <div class="lnd-qcard" style="border-top:2.5px solid #d97706;background:rgba(255,255,255,0.05);" onclick="lndGoTo('compare')">
         <div class="lnd-qcard-num">03</div>
         <div class="lnd-qcard-title">Day-over-Day Compare</div>
         <div class="lnd-qcard-desc">Compare any two saved dates side by side</div>
       </div>
-      <div class="lnd-qcard" style="border-top:2.5px solid #0d9488;" onclick="lndGoTo('weekly')">
+      <div class="lnd-qcard" style="border-top:2.5px solid #0d9488;background:rgba(255,255,255,0.05);" onclick="lndGoTo('weekly')">
         <div class="lnd-qcard-num">04</div>
         <div class="lnd-qcard-title">Weekly Summary</div>
         <div class="lnd-qcard-desc">Aggregated weekly view across the team</div>
@@ -334,16 +348,12 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 
     <div class="lnd-sec-title">Records & dispatch</div>
     <div class="lnd-accgrid">
-      <div class="lnd-acc-card" onclick="lndGoTo('accum')">
-        <div class="lnd-acc-num">05</div>
-        <div class="lnd-acc-title">Accumulated Report</div>
-      </div>
       <div class="lnd-acc-card" onclick="lndGoTo('archive')">
-        <div class="lnd-acc-num">06</div>
+        <div class="lnd-acc-num">05</div>
         <div class="lnd-acc-title">Daily Archive</div>
       </div>
       <div class="lnd-acc-card" onclick="lndGoTo('schedule')">
-        <div class="lnd-acc-num">07</div>
+        <div class="lnd-acc-num">06</div>
         <div class="lnd-acc-title">Send Report</div>
       </div>
       <div class="lnd-acc-card" id="lnd-sync-card" style="display:none;border-top:2.5px solid var(--purple);" onclick="lndGoTo('sync')">
@@ -358,9 +368,11 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 <div id="app" style="display:none;">
 
 <aside id="sidebar">
-  <div class="sb-logo">
-    <div class="sb-logo-title">TA Report Hub</div>
-    <div class="sb-logo-sub">ManifestGlobal · Talent Acquisition</div>
+  <div class="sb-logo" style="padding:16px 16px 12px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="mg-logo-tile"><span>M</span></div>
+      <div class="mg-logo-word"><div>Manifest</div><div>Global</div><div class="mg-logo-sub">TA Report Hub</div></div>
+    </div>
   </div>
   <!-- logged-in user -->
   <div class="sb-user-area" id="sb-user-area">
@@ -378,7 +390,6 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
     <div class="sb-group">Weekly</div>
     <div class="sb-item" onclick="nav(&#39;weekly&#39;)"><div class="sb-dot"></div>Weekly Summary</div>
     <div class="sb-group">Records</div>
-    <div class="sb-item" onclick="nav('accum')"><div class="sb-dot"></div>Accumulated Report</div>
     <div class="sb-item" onclick="nav('archive')"><div class="sb-dot"></div>Daily Archive</div>
     <div class="sb-item" onclick="nav(&#39;schedule&#39;)"><div class="sb-dot"></div>Send Report</div>
   </nav>
@@ -549,41 +560,75 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
 
 <!-- ══ WEEKLY ══ -->
 <div class="section" id="s-weekly">
-  <div class="page-hero"><h1>Weekly Summary</h1><p>Choose a view — by department, by individual, or the full team overview.</p></div>
+  <div class="page-hero"><h1>Weekly BU Summary</h1><p>Upload the weekly tracker CSV, pick your date range and BUs, then generate reports.</p></div>
   <div class="page-body">
 
-    <!-- Controls bar -->
+    <!-- Upload card -->
     <div class="card" style="padding:14px 18px;">
-      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Week</div>
-            <select id="wk-sel" onchange="renderWeekly()" style="width:190px;"><option value="">No records yet</option></select>
+      <div id="wbu-upload-zone" style="border:2px dashed var(--border);border-radius:10px;padding:24px 20px;text-align:center;cursor:pointer;transition:background .15s;" onclick="document.getElementById('wbu-file-in').click();" ondragover="event.preventDefault();this.style.background='#eef2ff';" ondragleave="this.style.background='';" ondrop="event.preventDefault();this.style.background='';wbuHandleFile(event.dataTransfer.files[0]);">
+        <div style="font-size:26px;margin-bottom:6px;">📂</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">Drop your weekly CSV here or click to upload</div>
+        <div style="font-size:11px;color:var(--text3);">Talent_Acquisition_Overall_Report_Summary.csv · .xlsx also supported</div>
+      </div>
+      <input type="file" id="wbu-file-in" accept=".csv,.xlsx,.xls" style="display:none;" onchange="wbuHandleFile(this.files[0]);">
+      <div id="wbu-status" style="margin-top:10px;min-height:20px;"></div>
+    </div>
+
+    <!-- Controls: date range + BU toggles + generate — hidden until CSV loaded -->
+    <div id="wbu-controls" style="display:none;">
+      <div class="card" style="padding:14px 18px;">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;">
+
+          <!-- Date range -->
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">From</div>
+              <select id="wbu-from" onchange="wbuApplyFilters()" style="width:160px;"></select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">To</div>
+              <select id="wbu-to" onchange="wbuApplyFilters()" style="width:160px;"></select>
+            </div>
+            <div id="wbu-range-label" style="font-size:12px;color:var(--text3);padding-bottom:7px;"></div>
           </div>
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">View</div>
-            <select id="wk-view" onchange="renderWeekly()" style="width:220px;">
-              <option value="dept">By Department</option>
-              <option value="individual">By Individual + Department</option>
-              <option value="team">Full Team Overview</option>
-            </select>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Filter dept</div>
-            <select id="wk-dept-filter" onchange="renderWeekly()" style="width:190px;">
-              <option value="">— all departments</option>
-            </select>
-          </div>
+
+          <!-- Generate button -->
+          <button class="btn btn-primary" style="padding:8px 20px;font-size:13px;" onclick="wbuGenerateReports()">⬇ Generate Report for Selected BUs</button>
         </div>
-        <div class="btn-row" style="margin-bottom:0;">
-          <button class="btn btn-green" onclick="compileWeekly()">Compile Now</button>
-          <button class="btn btn-primary" onclick="exportWeekly()">Export CSV</button>
-          <button class="btn" onclick="printWeekly()">Print / PDF</button>
+
+        <!-- BU toggles -->
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+          <span style="font-size:11px;color:var(--text3);margin-right:2px;">Show BUs:</span>
+          <button id="wbu-toggle-all" class="btn btn-sm" style="font-size:11px;padding:3px 12px;background:var(--dark);color:#fff;border-color:var(--dark);" onclick="wbuToggleAll()">All</button>
+          <button id="wbu-toggle-K12"               class="btn btn-sm wbu-toggle-btn" style="font-size:11px;padding:3px 12px;border-color:#e65100;color:#e65100;" onclick="wbuToggleBU('K12')" data-bu="K12">K12</button>
+          <button id="wbu-toggle-Student Placement"  class="btn btn-sm wbu-toggle-btn" style="font-size:11px;padding:3px 12px;border-color:#1565c0;color:#1565c0;" onclick="wbuToggleBU('Student Placement')" data-bu="Student Placement">Student Placement</button>
+          <button id="wbu-toggle-Explore"            class="btn btn-sm wbu-toggle-btn" style="font-size:11px;padding:3px 12px;border-color:#6a1b9a;color:#6a1b9a;" onclick="wbuToggleBU('Explore')" data-bu="Explore">Explore</button>
+          <button id="wbu-toggle-Kaaiser"            class="btn btn-sm wbu-toggle-btn" style="font-size:11px;padding:3px 12px;border-color:#c62828;color:#c62828;" onclick="wbuToggleBU('Kaaiser')" data-bu="Kaaiser">Kaaiser</button>
+          <button id="wbu-toggle-Manifest"           class="btn btn-sm wbu-toggle-btn" style="font-size:11px;padding:3px 12px;border-color:#1a237e;color:#1a237e;" onclick="wbuToggleBU('Manifest')" data-bu="Manifest">Manifest Global</button>
         </div>
       </div>
     </div>
 
-    <div id="weekly-wrap"><div class="empty">Save daily reports to build your weekly summary.</div></div>
+    <!-- Recruiter highlights — hidden until CSV loaded -->
+    <div id="wbu-highlights-card" style="display:none;">
+      <div class="card" style="padding:14px 18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div class="ct" style="margin-bottom:2px;">Weekly Recruiter Highlights</div>
+            <div style="font-size:12px;color:var(--text3);">Paste each recruiter's weekly message as-is. The tool will parse Activities, Offers &amp; Closures, and Open Items automatically.</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 12px;margin:10px 0 14px;line-height:1.7;">
+          <strong style="color:var(--text);">Paste as-is</strong> — the tool handles any format including markdown bold (<code>**text**</code>), bullet points, and tables. It recognises these section headers automatically:<br>
+          <code>SOURCING ACTIVITY</code> · <code>ACTIVITIES:</code> · <code>PIPELINE ACTIVITY THIS WEEK</code> · <code>CANDIDATES IN PIPELINE</code> · <code>OFFERS &amp; CLOSURES THIS WEEK</code> · <code>OPEN ITEMS</code><br>
+          For offers, use: <code>Ankit Kumar · Agent Success Partner · Offer Accepted · 15 Jun 2026</code>
+        </div>
+        <div id="wbu-highlights-inputs"></div>
+      </div>
+    </div>
+
+    <!-- Report output -->
+    <div id="wbu-wrap"><div class="empty">Upload a CSV to generate the weekly BU summary.</div></div>
   </div>
 </div>
 
@@ -965,7 +1010,7 @@ function nav(id){
   document.querySelectorAll('.sb-item').forEach(function(i){if((i.getAttribute('onclick')||'').indexOf("'"+id+"'")>-1)i.classList.add('active');});
   if(id==='report'&&P.rows.length)genReport();
   if(id==='accum'){fillAccumDates();genAccum();}
-  if(id==='weekly'){fillWeekSels();renderWeekly();}
+  if(id==='weekly'){/* upload-driven — no auto-render needed */}
   if(id==='archive')renderArchive();
   if(id==='compare')fillDateSels();
   if(id==='schedule')updateSchedUI();
@@ -1122,6 +1167,7 @@ var FIELD_PATTERNS=[
   ['roleTitle',          ['role title']],
   ['location',           ['location']],
   ['dept',               ['department','dept','team']],
+  ['bu',                 ['bu','business unit']],
   ['hm',                 ['hiring manager']],
   ['priority',           ['priority','priority (high/med/low)','priority (high/mid/low)']],
   ['startDate',          ['start date']],
@@ -3583,7 +3629,603 @@ function buildAccumEmailHTML(date,recs){
 function copyWorkerCode(){var pre=document.getElementById('worker-code-block');if(!pre){toast('No code.');return;}navigator.clipboard.writeText(pre.textContent||'').then(function(){toast('Worker code copied!');}).catch(function(){toast('Copy failed.');});}
 
 var _tt;function toast(msg){var e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){e.classList.remove('show');},2800);}
-</script>
 
+/* ════════════════════════════════════════════════
+   WEEKLY BU REPORT — CSV Upload, Filters, Highlights & Report
+   ════════════════════════════════════════════════ */
+
+var WBU_CONFIG=[
+  {key:'K12',label:'K12',color:'#e65100',bg:'#fff3e0',textColor:'#bf360c',
+   match:function(r){var bu=(r.bu||'').toLowerCase().replace(/[,\s]/g,'');var dept=(r.dept||'').toLowerCase().replace(/[,\s]/g,'');return bu.startsWith('k12')||dept.indexOf('k12')>-1;}},
+  {key:'Student Placement',label:'Student Placement',color:'#1565c0',bg:'#e3f2fd',textColor:'#0d47a1',
+   match:function(r){var bu=(r.bu||'').toLowerCase().trim();var dept=(r.dept||'').toLowerCase().trim();return dept==='student placement'&&(bu==='cialfo'||bu==='student placement');}},
+  {key:'Explore',label:'Explore',color:'#6a1b9a',bg:'#f3e5f5',textColor:'#4a148c',
+   match:function(r){return(r.bu||'').toLowerCase().trim()==='explore';}},
+  {key:'Kaaiser',label:'Kaaiser',color:'#c62828',bg:'#ffebee',textColor:'#8e0000',
+   match:function(r){return(r.bu||'').toLowerCase().trim()==='kaaiser';}},
+  {key:'Manifest',label:'Manifest Global',color:'#1a237e',bg:'#e8eaf6',textColor:'#0d1642',
+   match:function(r){return(r.bu||'').toLowerCase().trim().startsWith('manifest');}}
+];
+
+var wbuAllRows=[],wbuFileName='',wbuActiveBUs={},wbuAllToggle=true;
+
+function wbuNormDate(d){
+  if(!d||!d.trim())return'';d=d.trim();
+  if(d.indexOf('/')>-1){var p=d.split('/');if(p.length<3)return'';return p[2].padStart(4,'0')+p[0].padStart(2,'0')+p[1].padStart(2,'0');}
+  return d.replace(/-/g,'');
+}
+function wbuFmtDateShort(nd){
+  try{var y=nd.slice(0,4),m=nd.slice(4,6),d=nd.slice(6,8);return new Date(+y,+m-1,+d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return nd;}
+}
+function wbuClassifyRows(rows){
+  var result={};WBU_CONFIG.forEach(function(cfg){result[cfg.key]=[];});
+  rows.forEach(function(r){for(var i=0;i<WBU_CONFIG.length;i++){if(WBU_CONFIG[i].match(r)){result[WBU_CONFIG[i].key].push(r);return;}}});
+  return result;
+}
+function wbuDedup(rows){
+  var byKey={};
+  rows.forEach(function(r){
+    var key=(r.recordId&&r.recordId.trim())?r.recordId.trim():((r.roleTitle||'')+'|'+(r.hm||'')+'|'+(r.dept||'')).toLowerCase();
+    var nd=wbuNormDate(r.reportDate||'');
+    if(!byKey[key]||nd>wbuNormDate(byKey[key].reportDate||''))byKey[key]=r;
+  });
+  return Object.keys(byKey).map(function(k){return byKey[k];});
+}
+function wbuHealthStatus(snap){
+  var total=snap.totalRoles||1;
+  if(snap.delayed>0||snap.stageMet===0)return{label:'At Risk',col:'#c62828',bg:'#fef2f2'};
+  if(snap.uncertain>0||snap.stageMet/total<0.5)return{label:'Needs Attention',col:'#d97706',bg:'#fffbeb'};
+  return{label:'On Track',col:'#16a34a',bg:'#f0fdf4'};
+}
+
+/* ── Highlights parser ── */
+function wbuParseHighlights(text){
+  /* Returns {activities:[], offers:[], openItems:[], pipeline:[], candidates:[]} */
+  var result={activities:[],offers:[],openItems:[],pipeline:[],candidates:[]};
+  if(!text||!text.trim())return result;
+
+  /* Strip markdown bold/italic and inline code wrapping */
+  var clean=function(s){return s.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/__([^_]+)__/g,'$1').replace(/\*([^*]+)\*/g,'$1').replace(/_([^_]+)_/g,'$1').replace(/`([^`]+)`/g,'$1').trim();};
+
+  var lines=text.split(/\r?\n/);
+  var section='none';
+  var inTable=false;
+  var tableHeaders=[];
+
+  lines.forEach(function(raw){
+    var l=clean(raw);
+    if(!l)return;
+    var lu=l.toUpperCase().replace(/[^A-Z0-9\s&]/g,' ').replace(/\s+/g,' ').trim();
+
+    /* ── Section header detection (order matters — most specific first) ── */
+    if(lu.match(/^OFFERS?\s*(AND|&|AND)\s*CLOSURES?/)||lu.match(/^OFFERS?\s*THIS WEEK/)){section='offers';inTable=false;return;}
+    if(lu.match(/^OPEN ITEMS?/)){section='openitems';inTable=false;return;}
+    if(lu.match(/^SOURCING ACTIVITY/)||lu.match(/^SOURCING NOTES?/)){section='sourcing';inTable=false;return;}
+    if(lu.match(/^ACTIVITIES?:/)||lu.match(/^ACTIVITIES?\s*$/)){ section='activities';inTable=false;return;}
+    if(lu.match(/^PIPELINE ACTIVITY/)||lu.match(/^PIPELINE THIS WEEK/)){section='pipeline';inTable=false;return;}
+    if(lu.match(/^CANDIDATES?\s*(IN PIPELINE)?/)||lu.match(/^PIPELINE CANDIDATES?/)){section='candidates';inTable=false;return;}
+    if(lu.match(/^REPORT\s*:?$/)||lu.match(/^WEEKLY RECRUITER NOTES?/)){section='none';return;}
+
+    /* ── Skip markdown table separator rows |---|---| ── */
+    if(/^\|[\s\-|:]+\|$/.test(l)){return;}
+
+    /* ── Markdown table rows: | Col1 | Col2 | ── */
+    if(l.charAt(0)==='|'&&l.charAt(l.length-1)==='|'){
+      var cells=l.slice(1,-1).split('|').map(function(c){return clean(c);});
+      /* Detect header row (Candidate / Remarks etc) */
+      var isHeader=cells.some(function(c){var cu=c.toUpperCase();return cu.indexOf('CANDIDATE')>-1||cu.indexOf('REMARK')>-1||cu.indexOf('STATUS')>-1;});
+      if(isHeader){tableHeaders=cells;inTable=true;return;}
+      if(inTable&&section==='candidates'&&cells.length>=2){
+        result.candidates.push({name:cells[0]||'',remarks:cells[1]||'',extra:cells[2]||''});
+        return;
+      }
+    }
+
+    /* ── Content lines ── */
+    var content=l.replace(/^[\s•\-\*■→▪◦]+/,'').trim();
+    if(!content)return;
+
+    /* Skip lines that are just file references (e.g. Search Strategy - K12...xlsx) */
+    if(content.match(/\.(xlsx|pdf|docx|csv|xls)$/i)&&content.indexOf(' ')>-1&&content.split(' ').length<=8)return;
+
+    switch(section){
+      case 'sourcing':
+      case 'activities':
+        /* Skip pure-number stats lines like "Total screened (week): 12" → put in pipeline section */
+        if(content.match(/^Total (screened|in stages|pipeline)/i)){result.pipeline.push(content);return;}
+        result.activities.push(content);
+        break;
+      case 'pipeline':
+        /* Skip Mon/Tue/Wed/Thu/Fri header line */
+        if(content.toUpperCase().match(/^\s*(MON|TUE|WED|THU|FRI)/))return;
+        if(content.match(/Roles reporting|Total in stages|Screened today/i))return;
+        result.pipeline.push(content);
+        break;
+      case 'openitems':
+        result.openItems.push(content);
+        break;
+      case 'offers':
+        /* Try to parse: Name · Role · Status · Date */
+        var parts=content.split(/\s*[·|]\s*/);
+        if(parts.length>=2){
+          result.offers.push({candidate:parts[0].trim(),role:parts[1]?parts[1].trim():'',status:parts[2]?parts[2].trim():'Offer Accepted',joining:parts[3]?parts[3].trim():''});
+        } else {
+          result.offers.push({candidate:content,role:'',status:'Offer Accepted',joining:''});
+        }
+        break;
+      case 'candidates':
+        /* Inline candidate line: "**Naveen** (Bangalore) — remarks" */
+        var dashIdx=content.indexOf('—');
+        var colonIdx=content.indexOf(':');
+        var splitAt=dashIdx>-1?dashIdx:(colonIdx>5?colonIdx:-1);
+        if(splitAt>-1){
+          result.candidates.push({name:content.slice(0,splitAt).trim(),remarks:content.slice(splitAt+1).trim(),extra:''});
+        } else {
+          result.candidates.push({name:content,remarks:'',extra:''});
+        }
+        break;
+    }
+  });
+  return result;
+}
+
+/* Build highlights input boxes for each recruiter found across all BUs */
+function wbuBuildHighlightsInputs(filteredRows){
+  var hCard=document.getElementById('wbu-highlights-card');
+  var hInputs=document.getElementById('wbu-highlights-inputs');
+  if(!hCard||!hInputs)return;
+  /* Only show recruiters from BUs that are currently visible */
+  var buGroups=wbuClassifyRows(filteredRows);
+  var deduped={};
+  WBU_CONFIG.forEach(function(cfg){
+    var show=wbuAllToggle||wbuActiveBUs[cfg.key];
+    if(!show)return;
+    var buRows=wbuDedup(buGroups[cfg.key]||[]);
+    buRows.forEach(function(r){
+      var rc=(r.recruiter||r.member||'').trim();
+      if(rc)deduped[rc]=cfg; /* map recruiter → BU config for label */
+    });
+  });
+  var recruiters=Object.keys(deduped).sort();
+  if(!recruiters.length){hCard.style.display='none';return;}
+  /* Preserve existing textarea content when rebuilding */
+  var existing={};
+  document.querySelectorAll('#wbu-highlights-inputs textarea').forEach(function(ta){
+    var n=ta.getAttribute('data-recruiter');if(n)existing[n]=ta.value;
+  });
+  var H='';
+  recruiters.forEach(function(name){
+    var cfg=deduped[name];
+    var safeId='wbu-hl-'+name.replace(/[^a-z0-9]/gi,'_');
+    var prev=existing[name]||'';
+    H+='<div style="margin-bottom:16px;">';
+    H+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">';
+    H+='<span style="font-size:12px;font-weight:600;color:var(--text);">'+escH(name)+'</span>';
+    H+='<span style="font-size:10px;font-weight:600;padding:1px 8px;border-radius:99px;background:'+cfg.bg+';color:'+cfg.textColor+';">'+escH(cfg.label)+'</span>';
+    H+='</div>';
+    H+='<textarea id="'+safeId+'" data-recruiter="'+escH(name)+'" style="width:100%;min-height:140px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;line-height:1.6;resize:vertical;outline:none;background:var(--bg3);color:var(--text);">'+escH(prev)+'</textarea>';
+    H+='</div>';
+  });
+  hInputs.innerHTML=H;
+  hCard.style.display='block';
+}
+
+/* Get all highlights keyed by recruiter name */
+function wbuGetHighlights(){
+  var result={};
+  document.querySelectorAll('#wbu-highlights-inputs textarea').forEach(function(ta){
+    var name=ta.getAttribute('data-recruiter');
+    if(name)result[name]=wbuParseHighlights(ta.value);
+  });
+  return result;
+}
+
+function wbuRenderOrgTiles(snap){
+  var tiles=[{l:'Active Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened (week)',v:snap.screenedToday,c:'#0891b2'},{l:'Total in Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
+  var H='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:16px;">';
+  tiles.forEach(function(t){H+='<div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:'+t.c+';line-height:1;">'+escH(String(t.v))+'</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">'+t.l+'</div></div>';});
+  return H+'</div>';
+}
+function wbuRenderCard(cfg,rows,weekRange){
+  if(!rows||!rows.length)return'';
+  var snap=computeSnap(rows),health=wbuHealthStatus(snap);
+  var recruiters=[];rows.forEach(function(r){var rc=(r.recruiter||r.member||'').trim();if(rc&&recruiters.indexOf(rc)===-1)recruiters.push(rc);});
+  var offers=rows.filter(function(r){var v=(r.offerAccepted||'').toString().toLowerCase().trim();return v==='yes'||v==='1'||v==='true'||v==='y'||v==='accepted';});
+  var H='<div class="card" style="border-top:3px solid '+cfg.color+';margin-bottom:14px;">';
+  H+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">';
+  H+='<div style="display:flex;align-items:center;gap:10px;"><div style="background:'+cfg.bg+';color:'+cfg.textColor+';font-size:11px;font-weight:700;padding:3px 11px;border-radius:99px;">'+escH(cfg.label)+'</div>';
+  H+='<span style="font-size:13px;color:var(--text3);">'+escH(recruiters.join(', '))+' · '+rows.length+' role'+(rows.length!==1?'s':'')+' · '+escH(weekRange)+'</span></div>';
+  H+='<span style="font-size:11px;font-weight:600;padding:2px 11px;border-radius:99px;background:'+health.bg+';color:'+health.col+';">'+health.label+'</span></div>';
+  var tiles=[{l:'Open Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened',v:snap.screenedToday,c:'#0891b2'},{l:'In Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
+  H+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:12px;">';
+  tiles.forEach(function(t){H+='<div style="background:var(--bg2);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:20px;font-weight:800;color:'+t.c+';line-height:1;">'+escH(String(t.v))+'</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">'+t.l+'</div></div>';});
+  H+='</div>';
+  H+='<div style="overflow-x:auto;margin-bottom:12px;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:var(--bg2);">';
+  ['Role','HM','Priority','Days Left','F1','F2','Final','In Stages','Target Met','Confidence'].forEach(function(col){H+='<th style="padding:5px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;">'+col+'</th>';});
+  H+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    var bg=i%2===0?'':'background:#fafaf7;';
+    var pri=(r.priority||'').toLowerCase(),priCol=pri==='high'?'#dc2626':pri==='low'?'#16a34a':'#d97706';
+    var conf=(r.confidence||'').toLowerCase(),confCol=conf.indexOf('track')>-1?'#16a34a':conf.indexOf('uncertain')>-1?'#d97706':conf.indexOf('delay')>-1?'#dc2626':'var(--text3)';
+    var met=(r.stageTargetMet||'').toLowerCase(),metOk=met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true';
+    var metCol=metOk?'#16a34a':met.indexOf('close')>-1?'#d97706':'#dc2626';
+    var days=r.daysRemaining||'—',daysCol=isNaN(parseInt(days))?'var(--text3)':parseInt(days)<=5?'#dc2626':parseInt(days)<=15?'#d97706':'var(--text3)';
+    H+='<tr style="'+bg+'border-bottom:0.5px solid var(--border);">';
+    H+='<td style="padding:5px 8px;font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escH(r.roleTitle||'')+'">'+escH(r.roleTitle||'—')+'</td>';
+    H+='<td style="padding:5px 8px;color:var(--text3);">'+escH(r.hm||'—')+'</td>';
+    H+='<td style="padding:5px 8px;font-weight:600;color:'+priCol+';">'+escH(r.priority||'—')+'</td>';
+    H+='<td style="padding:5px 8px;font-weight:600;color:'+daysCol+';">'+escH(days)+'</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+escH(r.iv1||'—')+'</td>';
+    H+='<td style="padding:5px 8px;text-align:center;">'+escH(r.iv2||'—')+'</td>';
+    H+='<td style="padding:5px 8px;text-align:center;font-weight:600;color:#2563eb;">'+escH(r.finalIv||'—')+'</td>';
+    H+='<td style="padding:5px 8px;text-align:center;font-weight:800;color:#7e22ce;">'+escH(r.totalInStages||'—')+'</td>';
+    H+='<td style="padding:5px 8px;font-weight:600;color:'+metCol+';">'+escH(r.stageTargetMet||'—')+'</td>';
+    H+='<td style="padding:5px 8px;color:'+confCol+';font-weight:500;">'+escH(r.confidence||'—')+'</td></tr>';
+  });
+  H+='</tbody></table></div>';
+  if(offers.length){
+    H+='<div style="border-top:1px solid var(--border);padding-top:10px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;">Offers &amp; closures this week</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    offers.forEach(function(r){H+='<span style="font-size:11px;font-weight:500;background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;">✓ '+escH(r.roleTitle)+(r.hm?' · '+escH(r.hm):'')+'</span>';});
+    H+='</div></div>';
+  }
+  return H+'</div>';
+}
+
+function wbuPopulateDateSelects(allRows){
+  var dates=[];
+  allRows.forEach(function(r){var nd=wbuNormDate(r.reportDate||'');if(nd&&dates.indexOf(nd)===-1)dates.push(nd);});
+  dates.sort();
+  var fromSel=document.getElementById('wbu-from'),toSel=document.getElementById('wbu-to');
+  if(!fromSel||!toSel)return;
+  var opts=dates.map(function(nd){return'<option value="'+nd+'">'+wbuFmtDateShort(nd)+'</option>';}).join('');
+  fromSel.innerHTML=opts;toSel.innerHTML=opts;
+  var latest=dates[dates.length-1];
+  var ly=+latest.slice(0,4),lm=+latest.slice(4,6)-1,ld=+latest.slice(6,8);
+  var latestDt=new Date(ly,lm,ld),dow=latestDt.getDay(),monOffset=dow===0?-6:1-dow;
+  var monDt=new Date(latestDt);monDt.setDate(latestDt.getDate()+monOffset);
+  var monNd=monDt.getFullYear()+String(monDt.getMonth()+1).padStart(2,'0')+String(monDt.getDate()).padStart(2,'0');
+  var fromDefault=dates.find(function(d){return d>=monNd;})||dates[0];
+  fromSel.value=fromDefault;toSel.value=latest;
+}
+
+function wbuApplyFilters(){
+  var fromSel=document.getElementById('wbu-from'),toSel=document.getElementById('wbu-to');
+  if(!fromSel||!toSel||!wbuAllRows.length)return;
+  var from=fromSel.value,to=toSel.value;
+  if(from>to){var tmp=from;from=to;to=tmp;fromSel.value=from;toSel.value=to;}
+  var filtered=wbuAllRows.filter(function(r){var nd=wbuNormDate(r.reportDate||'');return nd&&nd>=from&&nd<=to;});
+  var rl=document.getElementById('wbu-range-label');
+  if(rl)rl.textContent=filtered.length+' rows · '+wbuFmtDateShort(from)+' – '+wbuFmtDateShort(to);
+  var buGroups=wbuClassifyRows(filtered);
+  WBU_CONFIG.forEach(function(cfg){buGroups[cfg.key]=wbuDedup(buGroups[cfg.key]||[]);});
+  var weekRange=wbuFmtDateShort(from)+' – '+wbuFmtDateShort(to);
+  var dedupAll=[];WBU_CONFIG.forEach(function(cfg){dedupAll=dedupAll.concat(buGroups[cfg.key]||[]);});
+  var wrap=document.getElementById('wbu-wrap'),H='';
+  H+=wbuRenderOrgTiles(computeSnap(dedupAll));
+  WBU_CONFIG.forEach(function(cfg){
+    var show=wbuAllToggle||wbuActiveBUs[cfg.key];
+    if(show&&(buGroups[cfg.key]||[]).length)H+=wbuRenderCard(cfg,buGroups[cfg.key],weekRange);
+  });
+  wrap.innerHTML=H||'<div class="empty">No roles found for the selected date range and BUs.</div>';
+  /* Rebuild highlights inputs scoped to visible BU recruiters */
+  wbuBuildHighlightsInputs(filtered);
+}
+
+function wbuToggleBU(key){
+  wbuAllToggle=false;wbuActiveBUs[key]=!wbuActiveBUs[key];
+  WBU_CONFIG.forEach(function(cfg){
+    var btn=document.getElementById('wbu-toggle-'+cfg.key);if(!btn)return;
+    if(wbuActiveBUs[cfg.key]){btn.style.background=cfg.color;btn.style.color='#fff';btn.style.borderColor=cfg.color;}
+    else{btn.style.background='';btn.style.color=cfg.color;btn.style.borderColor=cfg.color;}
+  });
+  var allBtn=document.getElementById('wbu-toggle-all');
+  if(allBtn){allBtn.style.background='';allBtn.style.color='var(--text)';allBtn.style.borderColor='var(--border)';}
+  wbuApplyFilters();
+}
+function wbuToggleAll(){
+  wbuAllToggle=true;wbuActiveBUs={};
+  var allBtn=document.getElementById('wbu-toggle-all');
+  if(allBtn){allBtn.style.background='var(--dark)';allBtn.style.color='#fff';allBtn.style.borderColor='var(--dark)';}
+  WBU_CONFIG.forEach(function(cfg){var btn=document.getElementById('wbu-toggle-'+cfg.key);if(btn){btn.style.background='';btn.style.color=cfg.color;btn.style.borderColor=cfg.color;}});
+  wbuApplyFilters();
+}
+
+function wbuGenerateReports(){
+  var fromSel=document.getElementById('wbu-from'),toSel=document.getElementById('wbu-to');
+  if(!fromSel||!toSel||!wbuAllRows.length){toast('Upload a CSV first.');return;}
+  var from=fromSel.value,to=toSel.value;
+  var selectedBUs=wbuAllToggle?WBU_CONFIG.map(function(c){return c.key;}):WBU_CONFIG.filter(function(c){return wbuActiveBUs[c.key];}).map(function(c){return c.key;});
+  if(!selectedBUs.length){toast('Select at least one BU.');return;}
+  var filtered=wbuAllRows.filter(function(r){var nd=wbuNormDate(r.reportDate||'');return nd&&nd>=from&&nd<=to;});
+  var buGroups=wbuClassifyRows(filtered);
+  WBU_CONFIG.forEach(function(cfg){buGroups[cfg.key]=wbuDedup(buGroups[cfg.key]||[]);});
+  /* Also get all (non-deduped) rows for pipeline activity table */
+  var buGroupsAll=wbuClassifyRows(filtered);
+  var weekRange=wbuFmtDateShort(from)+' – '+wbuFmtDateShort(to);
+  var highlights=wbuGetHighlights();
+  /* Get unique dates in range for Mon-Fri columns */
+  var datesInRange=[];
+  filtered.forEach(function(r){var nd=wbuNormDate(r.reportDate||'');if(nd&&datesInRange.indexOf(nd)===-1)datesInRange.push(nd);});
+  datesInRange.sort();
+  var generated=0;
+  selectedBUs.forEach(function(key){
+    var cfg=WBU_CONFIG.find(function(c){return c.key===key;});
+    if(!cfg)return;
+    var rows=buGroups[key]||[];if(!rows.length)return;
+    var allRowsForBU=buGroupsAll[key]||[];
+    var w=window.open('','_blank','width=1100,height=800,scrollbars=yes');
+    if(!w){toast('Pop-up blocked — allow pop-ups and try again.');return;}
+    w.document.write(wbuBuildReportHTML(cfg,rows,allRowsForBU,weekRange,highlights,datesInRange));
+    w.document.close();generated++;
+  });
+  if(generated)toast('Opened '+generated+' report'+(generated>1?'s':'')+'. Use Cmd+P / Ctrl+P to save as PDF.');
+  else toast('No roles found for selected BUs in this date range.');
+}
+
+function wbuBuildReportHTML(cfg,rows,allRows,weekRange,highlights,datesInRange){
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  var snap=computeSnap(rows),health=wbuHealthStatus(snap);
+  var recruiters=[];
+  rows.forEach(function(r){var rc=(r.recruiter||r.member||'').trim();if(rc&&recruiters.indexOf(rc)===-1)recruiters.push(rc);});
+
+  /* Pipeline activity: per-date totals across all (non-deduped) rows for this BU */
+  var dayLabels=['Mon','Tue','Wed','Thu','Fri','Sat'];
+  var pipelineByDate={};
+  datesInRange.forEach(function(nd){
+    var dayRows=allRows.filter(function(r){return wbuNormDate(r.reportDate||'')=== nd;});
+    pipelineByDate[nd]={
+      label:wbuDayLabel(nd,datesInRange),
+      roles:dayRows.length,
+      stages:dayRows.reduce(function(s,r){return s+(parseInt(r.totalInStages)||0);},0),
+      screened:dayRows.reduce(function(s,r){return s+(parseInt(r.screenedToday)||0);},0)
+    };
+  });
+
+  /* Offers from CSV (role-level) */
+  var csvOffers=rows.filter(function(r){var v=(r.offerAccepted||'').toString().toLowerCase().trim();return v==='yes'||v==='1'||v==='true'||v==='y'||v==='accepted';});
+
+  /* Merge highlights for all recruiters in this BU */
+  var mergedHL={activities:[],offers:[],openItems:[],pipeline:[],candidates:[]};
+  recruiters.forEach(function(name){
+    var hl=highlights[name];
+    if(!hl)return;
+    hl.activities.forEach(function(a){mergedHL.activities.push(a);});
+    hl.offers.forEach(function(o){mergedHL.offers.push(o);});
+    hl.openItems.forEach(function(i){mergedHL.openItems.push(i);});
+    (hl.pipeline||[]).forEach(function(p){mergedHL.pipeline.push(p);});
+    (hl.candidates||[]).forEach(function(c){mergedHL.candidates.push(c);});
+  });
+
+  var H='<!DOCTYPE html><html><head><meta charset="UTF-8">';
+  H+='<title>'+esc(cfg.label)+' BU Weekly · '+esc(weekRange)+'</title>';
+  H+='<style>';
+  H+='*{box-sizing:border-box;margin:0;padding:0;}';
+  H+='body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0efeb;padding:20px;font-size:13px;}';
+  H+='.wrap{max-width:1050px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e4e2da;}';
+  H+='.hdr{background:'+cfg.color+';color:#fff;padding:20px 28px;}';
+  H+='.hdr-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.7;margin-bottom:5px;}';
+  H+='.hdr-bu{font-size:28px;font-weight:800;margin-bottom:4px;letter-spacing:-.02em;}';
+  H+='.hdr-sub{font-size:13px;opacity:.8;}';
+  H+='.tiles{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #e4e2da;}';
+  H+='.tile{padding:16px 10px;text-align:center;border-right:1px solid #e4e2da;}.tile:last-child{border-right:none;}';
+  H+='.tile-n{font-size:26px;font-weight:800;color:#1a1a18;line-height:1;}';
+  H+='.tile-l{font-size:10px;font-weight:600;text-transform:uppercase;color:#888;margin-top:5px;letter-spacing:.04em;}';
+  H+='.conf-key{background:#fffde7;border-left:3px solid #e53935;padding:10px 16px;margin:0;font-size:11px;color:#555;line-height:1.6;}';
+  H+='.conf-key strong{font-weight:700;}';
+  H+='.sec{padding:16px 22px;border-bottom:1px solid #e4e2da;}';
+  H+='.sec-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:10px;}';
+  H+='table{width:100%;border-collapse:collapse;}';
+  H+='th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1.5px solid #e4e2da;text-align:left;background:#f5f4f0;color:#888;}';
+  H+='td{font-size:12px;padding:6px 8px;border-bottom:1px solid #f0eeea;vertical-align:middle;}tr:last-child td{border-bottom:none;}';
+  H+='.hi{color:#dc2626;font-weight:700;}.lo{color:#16a34a;font-weight:700;}.mi{color:#d97706;font-weight:700;}';
+  H+='.bmet{background:#f0fdf4;color:#16a34a;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;display:inline-block;}';
+  H+='.bclose{background:#fffbeb;color:#d97706;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;display:inline-block;}';
+  H+='.bbehind{background:#fef2f2;color:#dc2626;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;display:inline-block;}';
+  H+='.pg-break{page-break-before:always;}';
+  H+='.summary-hdr{background:'+cfg.color+';color:#fff;padding:14px 22px;font-size:14px;font-weight:700;letter-spacing:.02em;}';
+  H+='.recruiter-note{font-size:12px;font-weight:600;color:#555;padding:10px 22px 0;border-bottom:none;}';
+  H+='.activity-item{font-size:12px;color:#333;padding:3px 0 3px 16px;position:relative;}';
+  H+='.activity-item::before{content:"•";position:absolute;left:4px;color:#555;}';
+  H+='.open-item{font-size:12px;color:#333;padding:3px 0 3px 16px;position:relative;}';
+  H+='.open-item::before{content:"■";position:absolute;left:2px;color:'+cfg.color+';font-size:9px;}';
+  H+='.offer-acc{color:#16a34a;font-weight:600;}';
+  H+='.offer-verb{color:#d97706;font-weight:600;}';
+  H+='.footer{padding:10px 22px;background:#f5f4f0;font-size:10px;color:#aaa;}';
+  H+='@media print{body{background:#fff;padding:0;}.wrap{border-radius:0;border:none;box-shadow:none;}.pg-break{page-break-before:always;}}';
+  H+='</style></head><body><div class="wrap">';
+
+  /* ── PAGE 1 ── */
+  /* Header */
+  H+='<div class="hdr">';
+  H+='<div class="hdr-tag">Talent Acquisition Report</div>';
+  H+='<div class="hdr-bu">'+esc(cfg.label)+' BU Weekly Update — '+esc(weekRange)+'</div>';
+  H+='<div class="hdr-sub">'+esc(cfg.label)+' Overview · Recruiter(s): '+esc(recruiters.join(', '))+' · '+rows.length+' active role'+(rows.length!==1?'s':'')+' · <strong style="color:#fff;">'+esc(health.label)+'</strong></div>';
+  H+='</div>';
+
+  /* Metric tiles */
+  H+='<div class="tiles">';
+  [{l:'Open Roles',v:snap.totalRoles},{l:'Screened This Week',v:snap.screenedToday},{l:'Total in Stages',v:snap.totalInStages},{l:'Roles Meeting Target',v:snap.stageMet+'/'+snap.totalRoles},{l:'On Track',v:snap.onTrack},{l:'Uncertain',v:snap.uncertain},{l:'Delayed',v:snap.delayed}].forEach(function(t){
+    H+='<div class="tile"><div class="tile-n">'+esc(String(t.v))+'</div><div class="tile-l">'+esc(t.l)+'</div></div>';
+  });
+  H+='</div>';
+
+  /* Confidence key */
+  H+='<div class="conf-key"><strong style="color:#2e7d32;">On track</strong> — ≥6 in stages or ≥2 at Final; activity consistent with pace needed to hit offer date &nbsp;·&nbsp; <strong style="color:#f57c00;">Uncertain</strong> — pipeline building but depth or pace below what is needed; outcome possible, not assured &nbsp;·&nbsp; <strong style="color:#c62828;">Delayed</strong> — insufficient depth/activity; will not meet target offer date without intervention</div>';
+
+  /* Role pipeline table */
+  H+='<div class="sec"><div class="sec-h">Role Pipeline</div>';
+  H+='<table><thead><tr>';
+  H+='<th style="min-width:160px;">Role</th><th>HM</th><th>Priority</th><th>Days Left</th><th>F1</th><th>F2</th><th>Final</th><th>In Stages</th><th>Target Met</th><th>Confidence</th>';
+  H+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    var bg=i%2===0?'':'background:#fafaf8;';
+    var pri=(r.priority||'').toLowerCase(),priCls=pri==='high'?'hi':pri==='low'?'lo':'mi';
+    var conf=(r.confidence||'').toLowerCase(),confCls=conf.indexOf('track')>-1?'lo':conf.indexOf('uncertain')>-1?'mi':conf.indexOf('delay')>-1?'hi':'';
+    var met=(r.stageTargetMet||'').toLowerCase(),metOk=met.indexOf('met')>-1||met==='yes'||met==='✓'||met==='true';
+    var metCls=metOk?'bmet':met.indexOf('close')>-1?'bclose':'bbehind';
+    var days=r.daysRemaining||'—',daysCls=isNaN(parseInt(days))?'':parseInt(days)<=5?'hi':parseInt(days)<=15?'mi':'';
+    H+='<tr style="'+bg+'">';
+    H+='<td style="font-weight:600;" title="'+esc(r.roleTitle||'')+'">'+esc(r.roleTitle||'—')+'<br><span style="font-weight:400;color:#888;font-size:11px;">'+esc(r.location||r.dept||'')+'</span></td>';
+    H+='<td style="color:#555;">'+esc(r.hm||'—')+'</td>';
+    H+='<td class="'+priCls+'">'+esc(r.priority||'—')+'</td>';
+    H+='<td class="'+daysCls+'" style="font-weight:600;">'+esc(days)+'</td>';
+    H+='<td style="text-align:center;">'+esc(r.iv1||'—')+'</td>';
+    H+='<td style="text-align:center;">'+esc(r.iv2&&r.iv2.toLowerCase()==='n/a'?'N/A':r.iv2||'—')+'</td>';
+    H+='<td style="text-align:center;font-weight:700;color:#2563eb;">'+esc(r.finalIv||'—')+'</td>';
+    H+='<td style="text-align:center;font-weight:800;color:#7e22ce;">'+esc(r.totalInStages||'—')+'</td>';
+    H+='<td><span class="'+metCls+'">'+esc(r.stageTargetMet||'—')+'</span></td>';
+    H+='<td class="'+confCls+'" style="font-weight:600;">'+esc(r.confidence||'—')+'</td>';
+    H+='</tr>';
+  });
+  H+='</tbody></table></div>';
+
+  /* ── PAGE 2 ── */
+  H+='<div class="pg-break"></div>';
+  H+='<div class="summary-hdr">'+esc(cfg.label)+' BU Summary</div>';
+  H+='<div class="sec"><div class="sec-h">Weekly Recruiter Notes</div>';
+  H+='<div class="recruiter-note">'+esc(weekRange)+' · Recruiter'+(recruiters.length>1?'s':'')+': '+esc(recruiters.join(', '))+'</div>';
+  H+='</div>';
+
+  /* Pipeline activity Mon–Fri table */
+  H+='<div class="sec"><div class="sec-h">Pipeline Activity This Week</div>';
+  H+='<table><thead><tr><th style="width:160px;"></th>';
+  datesInRange.forEach(function(nd){H+='<th style="text-align:center;">'+esc(pipelineByDate[nd]?pipelineByDate[nd].label:nd)+'</th>';});
+  H+='</tr></thead><tbody>';
+  /* Roles reporting row */
+  H+='<tr><td style="font-weight:600;color:#555;">Roles reporting</td>';
+  datesInRange.forEach(function(nd){var d=pipelineByDate[nd];H+='<td style="text-align:center;">'+(d?d.roles:'—')+'</td>';});
+  H+='</tr>';
+  /* Total in stages row */
+  H+='<tr style="background:#fafaf8;"><td style="font-weight:600;color:#555;">Total in stages</td>';
+  datesInRange.forEach(function(nd){var d=pipelineByDate[nd];H+='<td style="text-align:center;font-weight:700;color:#7e22ce;">'+(d?d.stages:'—')+'</td>';});
+  H+='</tr>';
+  /* Screened today row */
+  H+='<tr><td style="font-weight:600;color:#555;">Screened today</td>';
+  datesInRange.forEach(function(nd){var d=pipelineByDate[nd];H+='<td style="text-align:center;">'+(d?d.screened:'—')+'</td>';});
+  H+='</tr>';
+  H+='</tbody></table></div>';
+
+  /* Activities / Sourcing */
+  if(mergedHL.activities.length){
+    H+='<div class="sec"><div class="sec-h">Sourcing Activity</div>';
+    mergedHL.activities.forEach(function(a){H+='<div class="activity-item">'+esc(a)+'</div>';});
+    H+='</div>';
+  }
+
+  /* Pipeline notes (stats lines) */
+  if(mergedHL.pipeline.length){
+    H+='<div class="sec"><div class="sec-h">Pipeline Activity Notes</div>';
+    mergedHL.pipeline.forEach(function(a){H+='<div class="activity-item">'+esc(a)+'</div>';});
+    H+='</div>';
+  }
+
+  /* Candidates in pipeline table */
+  if(mergedHL.candidates.length){
+    H+='<div class="sec"><div class="sec-h">Candidates in Pipeline</div>';
+    H+='<table><thead><tr><th style="width:180px;">Candidate</th><th>Remarks (Friday)</th></tr></thead><tbody>';
+    mergedHL.candidates.forEach(function(c,i){
+      var bg=i%2===0?'':'background:#fafaf8;';
+      H+='<tr style="'+bg+'"><td style="font-weight:600;vertical-align:top;padding-top:8px;">'+esc(c.name||'—')+'</td><td style="color:#444;line-height:1.6;">'+esc(c.remarks||'—')+(c.extra?'<br><span style="color:#888;font-size:11px;">'+esc(c.extra)+'</span>':'')+'</td></tr>';
+    });
+    H+='</tbody></table></div>';
+  }
+
+  /* Offers & Closures — from highlights (has candidate names) + CSV offers as fallback */
+  var hasHLoffers=mergedHL.offers.length>0;
+  var hasCSVoffers=csvOffers.length>0;
+  if(hasHLoffers||hasCSVoffers){
+    H+='<div class="sec"><div class="sec-h">Offers &amp; Closures This Week</div>';
+    H+='<table><thead><tr><th>Candidate</th><th>Role</th><th>Status</th><th>Joining Date</th></tr></thead><tbody>';
+    if(hasHLoffers){
+      mergedHL.offers.forEach(function(o){
+        var isVerbal=(o.status||'').toLowerCase().indexOf('verbal')>-1;
+        var statusCls=isVerbal?'offer-verb':'offer-acc';
+        var statusIcon=isVerbal?'🟡':'✅';
+        H+='<tr>';
+        H+='<td style="font-weight:600;">'+esc(o.candidate||'—')+'</td>';
+        H+='<td>'+esc(o.role||'—')+'</td>';
+        H+='<td class="'+statusCls+'">'+statusIcon+' '+esc(o.status||'Offer Accepted')+'</td>';
+        H+='<td>'+esc(o.joining||'—')+'</td>';
+        H+='</tr>';
+      });
+    } else {
+      /* Fall back to CSV offer-accepted roles */
+      csvOffers.forEach(function(r){
+        H+='<tr>';
+        H+='<td style="font-weight:600;color:#888;">—</td>';
+        H+='<td style="font-weight:600;">'+esc(r.roleTitle||'—')+'</td>';
+        H+='<td class="offer-acc">✅ Offer Accepted</td>';
+        H+='<td>—</td>';
+        H+='</tr>';
+      });
+    }
+    H+='</tbody></table></div>';
+  }
+
+  /* Open Items */
+  if(mergedHL.openItems.length){
+    H+='<div class="sec"><div class="sec-h">Open Items</div>';
+    mergedHL.openItems.forEach(function(item){H+='<div class="open-item">'+esc(item)+'</div>';});
+    H+='</div>';
+  }
+
+  /* Footer */
+  H+='<div class="footer">ManifestGlobal Talent Acquisition &nbsp;·&nbsp; '+esc(cfg.label)+' BU Weekly Report &nbsp;·&nbsp; '+esc(weekRange)+' &nbsp;·&nbsp; Generated '+new Date().toLocaleString()+'</div>';
+  return H+'</div></body></html>';
+}
+
+/* Helper: day label from norm date */
+function wbuDayLabel(nd,allDates){
+  try{
+    var y=+nd.slice(0,4),m=+nd.slice(4,6)-1,d=+nd.slice(6,8);
+    var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return days[new Date(y,m,d).getDay()];
+  }catch(e){return nd;}
+}
+
+function wbuHandleFile(file){
+  if(!file)return;
+  var status=document.getElementById('wbu-status');
+  status.innerHTML='<span style="color:var(--text3);font-size:12px;">Reading file…</span>';
+  var ext=(file.name||'').split('.').pop().toLowerCase();
+  wbuFileName=file.name;
+  function processRaw(raw){
+    var rows=tryDirectCSV(raw);
+    if(!rows||!rows.length){status.innerHTML='<span style="color:#dc2626;font-size:12px;">Could not parse CSV — check the file format.</span>';return;}
+    wbuAllRows=rows;wbuAllToggle=true;wbuActiveBUs={};
+    wbuPopulateDateSelects(rows);
+    var ctrl=document.getElementById('wbu-controls');if(ctrl)ctrl.style.display='block';
+    var allBtn=document.getElementById('wbu-toggle-all');
+    if(allBtn){allBtn.style.background='var(--dark)';allBtn.style.color='#fff';allBtn.style.borderColor='var(--dark)';}
+    WBU_CONFIG.forEach(function(cfg){var btn=document.getElementById('wbu-toggle-'+cfg.key);if(btn){btn.style.background='';btn.style.color=cfg.color;btn.style.borderColor=cfg.color;}});
+    var buGroups=wbuClassifyRows(rows);
+    var totalBUs=WBU_CONFIG.filter(function(c){return buGroups[c.key]&&buGroups[c.key].length>0;}).length;
+    status.innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:12px;font-weight:600;color:var(--text);">'+escH(file.name)+'</span>'
+      +'<span style="font-size:12px;color:var(--text3);">· '+rows.length+' rows · '+totalBUs+' BUs detected</span>'
+      +'<span style="font-size:11px;font-weight:600;padding:1px 9px;border-radius:99px;background:#f0fdf4;color:#16a34a;">Parsed ✓</span>'
+      +'</div>';
+    wbuApplyFilters();
+  }
+  if(ext==='csv'){
+    var reader=new FileReader();
+    reader.onload=function(e){processRaw(e.target.result);};
+    reader.onerror=function(){status.innerHTML='<span style="color:#dc2626;font-size:12px;">File read error.</span>';};
+    reader.readAsText(file);
+  } else if(ext==='xlsx'||ext==='xls'){
+    var reader2=new FileReader();
+    reader2.onload=function(e){
+      try{var wb=XLSX.read(e.target.result,{type:'array'});var ws=wb.Sheets[wb.SheetNames[0]];processRaw(XLSX.utils.sheet_to_csv(ws));}
+      catch(err){status.innerHTML='<span style="color:#dc2626;font-size:12px;">Excel read error: '+escH(err.message||'unknown')+'</span>';}
+    };
+    reader2.readAsArrayBuffer(file);
+  } else {
+    status.innerHTML='<span style="color:#dc2626;font-size:12px;">Unsupported file type — please upload a .csv or .xlsx file.</span>';
+  }
+}
+/* ════ END WEEKLY BU REPORT ════ */
+
+
+</script>
 
 </body></html>
