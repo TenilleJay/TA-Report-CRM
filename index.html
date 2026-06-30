@@ -3947,19 +3947,29 @@ function wbuGenerateReports(){
   var datesInRange=[];
   filtered.forEach(function(r){var nd=wbuNormDate(r.reportDate||'');if(nd&&datesInRange.indexOf(nd)===-1)datesInRange.push(nd);});
   datesInRange.sort();
-  var generated=0;
-  selectedBUs.forEach(function(key){
+  var toOpen=selectedBUs.map(function(key){
     var cfg=WBU_CONFIG.find(function(c){return c.key===key;});
-    if(!cfg)return;
-    var rows=buGroups[key]||[];if(!rows.length)return;
-    var allRowsForBU=buGroupsAll[key]||[];
-    var w=window.open('','_blank','width=1100,height=800,scrollbars=yes');
-    if(!w){toast('Pop-up blocked — allow pop-ups and try again.');return;}
-    w.document.write(wbuBuildReportHTML(cfg,rows,allRowsForBU,weekRange,highlights,datesInRange));
-    w.document.close();generated++;
+    if(!cfg)return null;
+    var rows=buGroups[key]||[];if(!rows.length)return null;
+    return {cfg:cfg,rows:rows,allRowsForBU:buGroupsAll[key]||[]};
+  }).filter(Boolean);
+  if(!toOpen.length){toast('No roles found for selected BUs in this date range.');return;}
+  var blocked=0,opened=0;
+  toOpen.forEach(function(item,i){
+    setTimeout(function(){
+      var w=window.open('','_blank','width=1100,height=900,scrollbars=yes');
+      if(!w){blocked++;toast('Pop-up blocked for '+item.cfg.label+' — allow pop-ups for this site and try again.');return;}
+      w.document.write(wbuBuildReportHTML(item.cfg,item.rows,item.allRowsForBU,weekRange,highlights,datesInRange));
+      w.document.close();
+      opened++;
+      setTimeout(function(){w.focus();w.print();},600);
+      if(i===toOpen.length-1){
+        setTimeout(function(){
+          if(opened)toast('Opened '+opened+' report'+(opened>1?'s':'')+'. Use the print dialog in each tab to save as PDF.');
+        },300);
+      }
+    },i*400);
   });
-  if(generated)toast('Opened '+generated+' report'+(generated>1?'s':'')+'. Use Cmd+P / Ctrl+P to save as PDF.');
-  else toast('No roles found for selected BUs in this date range.');
 }
 
 function wbuBuildReportHTML(cfg,rows,allRows,weekRange,highlights,datesInRange){
@@ -4031,7 +4041,7 @@ function wbuBuildReportHTML(cfg,rows,allRows,weekRange,highlights,datesInRange){
   H+='.offer-acc{color:#16a34a;font-weight:600;}';
   H+='.offer-verb{color:#d97706;font-weight:600;}';
   H+='.footer{padding:10px 22px;background:#f5f4f0;font-size:10px;color:#aaa;}';
-  H+='@media print{body{background:#fff;padding:0;}.wrap{border-radius:0;border:none;box-shadow:none;}.pg-break{page-break-before:always;}}';
+  H+='@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{background:#fff;padding:0;}.wrap{border-radius:0;border:none;box-shadow:none;}.pg-break{page-break-before:always;}}';
   H+='</style></head><body><div class="wrap">';
 
   /* ── PAGE 1 ── */
