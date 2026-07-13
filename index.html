@@ -3832,15 +3832,16 @@ function wbuGetHighlights(){
   return result;
 }
 
-function wbuRenderOrgTiles(snap){
-  var tiles=[{l:'Active Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened (week)',v:snap.screenedToday,c:'#0891b2'},{l:'Total in Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
+function wbuRenderOrgTiles(snap,weekScreened){
+  var tiles=[{l:'Active Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened (week)',v:(weekScreened==null?snap.screenedToday:weekScreened),c:'#0891b2'},{l:'Total in Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
   var H='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:16px;">';
   tiles.forEach(function(t){H+='<div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:22px;font-weight:800;color:'+t.c+';line-height:1;">'+escH(String(t.v))+'</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">'+t.l+'</div></div>';});
   return H+'</div>';
 }
-function wbuRenderCard(cfg,rows,weekRange){
+function wbuRenderCard(cfg,rows,weekRange,allRowsForBU){
   if(!rows||!rows.length)return'';
   var snap=computeSnap(rows),health=wbuHealthStatus(snap);
+  var weekScreened=(allRowsForBU||rows).reduce(function(s,r){return s+(parseInt(r.screenedToday)||0);},0);
   var recruiters=[];rows.forEach(function(r){var rc=(r.recruiter||r.member||'').trim();if(rc&&recruiters.indexOf(rc)===-1)recruiters.push(rc);});
   var offers=rows.filter(function(r){var v=(r.offerAccepted||'').toString().toLowerCase().trim();return v==='yes'||v==='1'||v==='true'||v==='y'||v==='accepted';});
   var H='<div class="card" style="border-top:3px solid '+cfg.color+';margin-bottom:14px;">';
@@ -3848,7 +3849,7 @@ function wbuRenderCard(cfg,rows,weekRange){
   H+='<div style="display:flex;align-items:center;gap:10px;"><div style="background:'+cfg.bg+';color:'+cfg.textColor+';font-size:11px;font-weight:700;padding:3px 11px;border-radius:99px;">'+escH(cfg.label)+'</div>';
   H+='<span style="font-size:13px;color:var(--text3);">'+escH(recruiters.join(', '))+' · '+rows.length+' role'+(rows.length!==1?'s':'')+' · '+escH(weekRange)+'</span></div>';
   H+='<span style="font-size:11px;font-weight:600;padding:2px 11px;border-radius:99px;background:'+health.bg+';color:'+health.col+';">'+health.label+'</span></div>';
-  var tiles=[{l:'Open Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened',v:snap.screenedToday,c:'#0891b2'},{l:'In Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
+  var tiles=[{l:'Open Roles',v:snap.totalRoles,c:'var(--text)'},{l:'Screened',v:weekScreened,c:'#0891b2'},{l:'In Stages',v:snap.totalInStages,c:'#7e22ce'},{l:'Met Target',v:snap.stageMet+'/'+snap.totalRoles,c:snap.stageMet>0?'#16a34a':'#dc2626'},{l:'On Track',v:snap.onTrack,c:'#16a34a'},{l:'Uncertain',v:snap.uncertain,c:'#d97706'},{l:'Delayed',v:snap.delayed,c:'#dc2626'}];
   H+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:12px;">';
   tiles.forEach(function(t){H+='<div style="background:var(--bg2);border-radius:8px;padding:8px 6px;text-align:center;"><div style="font-size:20px;font-weight:800;color:'+t.c+';line-height:1;">'+escH(String(t.v))+'</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">'+t.l+'</div></div>';});
   H+='</div>';
@@ -3910,14 +3911,17 @@ function wbuApplyFilters(){
   var rl=document.getElementById('wbu-range-label');
   if(rl)rl.textContent=filtered.length+' rows · '+wbuFmtDateShort(from)+' – '+wbuFmtDateShort(to);
   var buGroups=wbuClassifyRows(filtered);
+  var buGroupsAllRaw={};WBU_CONFIG.forEach(function(cfg){buGroupsAllRaw[cfg.key]=(buGroups[cfg.key]||[]).slice();});
   WBU_CONFIG.forEach(function(cfg){buGroups[cfg.key]=wbuDedup(buGroups[cfg.key]||[]);});
   var weekRange=wbuFmtDateShort(from)+' – '+wbuFmtDateShort(to);
   var dedupAll=[];WBU_CONFIG.forEach(function(cfg){dedupAll=dedupAll.concat(buGroups[cfg.key]||[]);});
+  /* Weekly screened total = sum across every day in range (not deduped to one row per role) */
+  var orgWeekScreened=filtered.reduce(function(s,r){return s+(parseInt(r.screenedToday)||0);},0);
   var wrap=document.getElementById('wbu-wrap'),H='';
-  H+=wbuRenderOrgTiles(computeSnap(dedupAll));
+  H+=wbuRenderOrgTiles(computeSnap(dedupAll),orgWeekScreened);
   WBU_CONFIG.forEach(function(cfg){
     var show=wbuAllToggle||wbuActiveBUs[cfg.key];
-    if(show&&(buGroups[cfg.key]||[]).length)H+=wbuRenderCard(cfg,buGroups[cfg.key],weekRange);
+    if(show&&(buGroups[cfg.key]||[]).length)H+=wbuRenderCard(cfg,buGroups[cfg.key],weekRange,buGroupsAllRaw[cfg.key]);
   });
   wrap.innerHTML=H||'<div class="empty">No roles found for the selected date range and BUs.</div>';
   /* Rebuild highlights inputs scoped to visible BU recruiters */
@@ -4004,6 +4008,9 @@ function wbuBuildReportHTML(cfg,rows,allRows,weekRange,highlights,datesInRange){
     };
   });
 
+  /* Weekly screened total = sum of each day's screened count in range, not just the latest/last day */
+  var weekScreenedTotal=datesInRange.reduce(function(s,nd){return s+(pipelineByDate[nd]?pipelineByDate[nd].screened:0);},0);
+
   /* Offers from CSV (role-level) */
   var csvOffers=rows.filter(function(r){var v=(r.offerAccepted||'').toString().toLowerCase().trim();return v==='yes'||v==='1'||v==='true'||v==='y'||v==='accepted';});
 
@@ -4067,7 +4074,7 @@ function wbuBuildReportHTML(cfg,rows,allRows,weekRange,highlights,datesInRange){
 
   /* Metric tiles */
   H+='<div class="tiles">';
-  [{l:'Open Roles',v:snap.totalRoles},{l:'Screened This Week',v:snap.screenedToday},{l:'Total in Stages',v:snap.totalInStages},{l:'Roles Meeting Target',v:snap.stageMet+'/'+snap.totalRoles},{l:'On Track',v:snap.onTrack},{l:'Uncertain',v:snap.uncertain},{l:'Delayed',v:snap.delayed}].forEach(function(t){
+  [{l:'Open Roles',v:snap.totalRoles},{l:'Screened This Week',v:weekScreenedTotal},{l:'Total in Stages',v:snap.totalInStages},{l:'Roles Meeting Target',v:snap.stageMet+'/'+snap.totalRoles},{l:'On Track',v:snap.onTrack},{l:'Uncertain',v:snap.uncertain},{l:'Delayed',v:snap.delayed}].forEach(function(t){
     H+='<div class="tile"><div class="tile-n">'+esc(String(t.v))+'</div><div class="tile-l">'+esc(t.l)+'</div></div>';
   });
   H+='</div>';
