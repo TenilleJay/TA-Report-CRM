@@ -420,10 +420,8 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
           <input type="text" id="up-date" placeholder="e.g. 4/15/2026" style="width:155px;" oninput="validateDateInput(this)">
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter / Sourcer</div>
-          <select id="up-member" style="width:160px;">
-            <option value="">— select</option>
-          </select>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter(s) <span style="color:#aaa;font-weight:400;">(auto-detected — adjust if needed)</span></div>
+          <div id="up-member-multi" style="display:flex;flex-wrap:wrap;gap:6px;max-width:280px;min-height:34px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;align-items:center;"></div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
@@ -500,12 +498,6 @@ th.gn{background:#ecfdf5;color:#065f46;}th.gs{background:#fff7ed;color:#9a3412;}
     <div class="card" style="padding:14px 18px;margin-bottom:14px;">
       <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Compare against (yesterday's record)</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-        <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Recruiter</div>
-          <select id="cmp-member" style="width:160px;" onchange="fillCmpDepts()">
-            <option value="">— auto (same recruiter)</option>
-          </select>
-        </div>
         <div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Department</div>
           <select id="cmp-dept" style="width:200px;" onchange="fillCmpDates();genReport()">
@@ -841,7 +833,43 @@ function ls(){try{return JSON.parse(localStorage.getItem(SK)||'[]');}catch(e){re
 function ss(a){try{localStorage.setItem(SK,JSON.stringify(a));}catch(e){}}
 function lm(){try{return JSON.parse(localStorage.getItem(MK)||'{}');}catch(e){return{};}}
 function sm(o){try{localStorage.setItem(MK,JSON.stringify(o));}catch(e){}}
-var P={rows:[],date:'',member:'',roleType:'recruiter',dept:''};
+var P={rows:[],detected:[],recruiters:[],date:'',member:'',roleType:'recruiter',dept:''};
+
+/* ════ RECRUITER MULTI-SELECT (reflects on report, doesn't gate detection) ════ */
+function renderMemberCheckboxes(selected){
+  var box=document.getElementById('up-member-multi');
+  if(!box)return;
+  selected=selected||[];
+  var names=HUB_MEMBERS.filter(function(m){return HUB_SPECIAL.indexOf(m.name)===-1;}).map(function(m){return m.name;});
+  box.innerHTML=names.map(function(name){
+    var checked=selected.indexOf(name)>-1?' checked':'';
+    return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;background:#f5f4f0;cursor:pointer;white-space:nowrap;">'+
+      '<input type="checkbox" value="'+escH(name)+'"'+checked+' onchange="onMemberCheckChange()" style="margin:0;">'+escH(name)+'</label>';
+  }).join('');
+}
+function getCheckedMembers(){
+  var box=document.getElementById('up-member-multi');
+  if(!box)return[];
+  return Array.prototype.slice.call(box.querySelectorAll('input[type=checkbox]:checked')).map(function(c){return c.value;});
+}
+function setCheckedMembers(names){
+  var box=document.getElementById('up-member-multi');
+  if(!box)return;
+  names=names||[];
+  Array.prototype.forEach.call(box.querySelectorAll('input[type=checkbox]'),function(c){c.checked=names.indexOf(c.value)>-1;});
+}
+function onMemberCheckChange(){/* placeholder — recruiter selection is applied at Generate Report time */}
+/* Detect which known team members appear in a set of rows (via recruiter/member column) */
+function detectRecruiters(rows){
+  var set={};
+  (rows||[]).forEach(function(r){
+    var rc=(r.recruiter||r.member||'').trim();
+    if(!rc)return;
+    var match=HUB_MEMBERS.find(function(m){return m.name.toLowerCase()===rc.toLowerCase();});
+    if(match)set[match.name]=1;
+  });
+  return Object.keys(set);
+}
 
 /* ════ INIT ════ */
 document.addEventListener('DOMContentLoaded',function(){
@@ -961,18 +989,8 @@ function lndGoTo(sectionId){
   var un=document.getElementById('sb-user-name');if(un)un.textContent=name;
   var ur=document.getElementById('sb-user-role');if(ur)ur.textContent=m.role;
 
-  /* Populate recruiter dropdown from HUB_MEMBERS — excludes special users */
-  var upMember=document.getElementById('up-member');
-  if(upMember){
-    HUB_MEMBERS.filter(function(m){return HUB_SPECIAL.indexOf(m.name)===-1;})
-      .forEach(function(m){
-        var opt=document.createElement('option');
-        opt.value=m.name;opt.textContent=m.name;
-        upMember.appendChild(opt);
-      });
-    /* Pre-select the logged-in user */
-    if(currentHubUser)upMember.value=currentHubUser;
-  }
+  /* Populate recruiter multi-select checkboxes — pre-check the logged-in user until detection runs */
+  renderMemberCheckboxes(currentHubUser?[currentHubUser]:[]);
 
   /* Initialise app internals on first entry */
   var t=new Date();
@@ -1078,16 +1096,17 @@ function parseTextRaw(raw,fname){
   if(!rows||rows.length===0){
     var preview=raw.slice(0,500);
     document.getElementById('ai-status').innerHTML=
-      '<div class="notice nr">Could not find a data table. Make sure you export as CSV (File → Download → Comma Separated Values). First 500 chars read:</div>'+
+      '<div class="notice nr" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><span>Could not find a data table. Make sure you export as CSV (File → Download → Comma Separated Values). First 500 chars read:</span><button class="btn btn-sm" onclick="clearUp()">Clear</button></div>'+
       '<div style="background:#1a1a18;color:#7cfc00;font-size:10px;font-family:monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;margin-top:6px;">'+escH(preview)+'</div>';
     return;
   }
 
   ALL_ROWS=rows;
 
-  /* Read Step 1 selections */
+  /* Read Step 1 selections — detection is by DATE + DEPARTMENT only.
+     Recruiter is no longer a gating filter here: several recruiters can
+     legitimately have updated the same role/department on the same day. */
   var step1Date=(document.getElementById('up-date').value||'').trim();
-  var step1Member=(document.getElementById('up-member').value||'').trim().toLowerCase();
   var step1Dept=(document.getElementById('up-dept').value||'').trim().toLowerCase();
 
   /* Find all unique dates in CSV for comparison */
@@ -1101,38 +1120,39 @@ function parseTextRaw(raw,fname){
     return (r.reportDate||'').trim()===step1Date;
   });
 
-  /* ── Filter 2: Recruiter — match against the Recruiter column in CSV ── */
-  if(step1Member&&filtered.length>0){
-    var memberFiltered=filtered.filter(function(r){
-      var csvRecruiter=((r.recruiter||'')).trim().toLowerCase();
-      if(!csvRecruiter)return true; /* no recruiter col — include */
-      return csvRecruiter===step1Member;
+  /* ── Filter 2: Department ──
+     Normalise away trailing commas / doubled whitespace (known CSV quirk),
+     then match strictly — a department filter that matches nothing must
+     NOT silently fall back to every department's rows. */
+  function normDept(s){return (s||'').toLowerCase().replace(/,/g,'').replace(/\s+/g,' ').trim();}
+  if(step1Dept){
+    var step1DeptNorm=normDept(step1Dept);
+    filtered=filtered.filter(function(r){
+      var d=normDept(r.dept);
+      if(!d)return false; /* no dept on this row — exclude when a dept filter is active */
+      if(step1DeptNorm==='k12 cialfo & bridgeu')return d.indexOf('k12')>-1;
+      return d===step1DeptNorm;
     });
-    if(memberFiltered.length>0)filtered=memberFiltered;
-  }
-
-  /* ── Filter 3: Department ── */
-  if(step1Dept&&filtered.length>0){
-    var deptFiltered=filtered.filter(function(r){
-      var d=(r.dept||'').trim().toLowerCase();
-      if(!d)return false; /* no dept — exclude if dept filter is active */
-      if(step1Dept==='k12 cialfo & bridgeu')return d.indexOf('k12')>-1;
-      return d.trim()===step1Dept.trim(); /* exact match, both trimmed */
-    });
-    if(deptFiltered.length>0)filtered=deptFiltered;
   }
 
   if(filtered.length===0){
     var firstRow=ALL_ROWS[0]||{};
     var rawLines=LAST_RAW.split('\n').slice(0,6).join('\n');
+    /* Show the actual department values found for this date so mismatches
+       against the fixed dropdown list (e.g. "Product" vs "Product Team")
+       are easy to spot. */
+    var dateScoped=ALL_ROWS.filter(function(r){return!step1Date||(r.reportDate||'').trim()===step1Date;});
+    var deptsSeen={};dateScoped.forEach(function(r){if(r.dept)deptsSeen[r.dept]=1;});
     var debugInfo='Step 1 date: '+step1Date+'\n';
+    debugInfo+='Step 1 department: '+(document.getElementById('up-dept').value||'')+'\n';
     debugInfo+='Total rows parsed: '+ALL_ROWS.length+'\n';
     debugInfo+='reportDate values found: ['+uniqueDates.slice(0,10).join(' | ')+']\n';
+    debugInfo+='Department values found for this date: ['+Object.keys(deptsSeen).slice(0,20).join(' | ')+']\n';
     debugInfo+='Fields mapped: '+Object.keys(firstRow).join(', ')+'\n';
     debugInfo+='First data row: '+JSON.stringify(firstRow).slice(0,300)+'\n\n';
     debugInfo+='--- Raw CSV first 6 lines ---\n'+rawLines;
     document.getElementById('ai-status').innerHTML=
-      '<div class="notice nr" style="margin-bottom:6px;">No rows matched. Debug info:</div>'+
+      '<div class="notice nr" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><span>No rows matched. Debug info:</span><button class="btn btn-sm" onclick="clearUp()">Clear</button></div>'+
       '<div style="background:#1a1a18;color:#7cfc00;font-size:10px;font-family:monospace;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;">'+escH(debugInfo)+'</div>';
     return;
   }
@@ -1140,18 +1160,22 @@ function parseTextRaw(raw,fname){
   /* Use filtered if we got matches, otherwise all rows */
   var final=filtered.length>0?filtered:ALL_ROWS;
 
-  P.rows=final;
+  /* Stash the date+dept-detected set; recruiter selection narrows this down
+     later, at Generate Report time, without re-running detection. */
+  P.detected=final;
   P.date=step1Date||toIn(new Date());
-  P.member=document.getElementById('up-member').value||'Unknown';
-  P.roleType=document.getElementById('up-role').value;
+
+  /* Auto-check whichever known recruiters actually appear in the detected rows */
+  var detectedNames=detectRecruiters(final);
+  renderMemberCheckboxes(detectedNames);
 
   var msg='\u2713 '+fname+' \u00b7 '+final.length+' roles';
   if(step1Date&&ALL_ROWS.length>final.length){
     msg+=' for '+step1Date;
-    if(step1Member)msg+=' · '+document.getElementById('up-member').value;
     if(step1Dept)msg+=' · '+document.getElementById('up-dept').value;
   }
   msg+=' (from '+ALL_ROWS.length+' total rows)';
+  if(detectedNames.length)msg+=' · Recruiters detected: '+detectedNames.join(', ');
   showStatus('ng',msg);
   showPreview(final,null);
 }
@@ -1402,16 +1426,33 @@ function showPreview(rows,meta){
   document.getElementById('prev-tbl').innerHTML=h;
 }
 function clearUp(){
-  P={rows:[],date:'',member:'',roleType:'recruiter'};
+  P={rows:[],detected:[],recruiters:[],date:'',member:'',roleType:'recruiter',dept:''};
   ALL_ROWS=[];
+  renderMemberCheckboxes([]);
   document.getElementById('preview-card').style.display='none';
   document.getElementById('ai-status').innerHTML='';
   document.getElementById('file-in').value='';
 }
 function processUpload(){
-  if(!P.rows.length){toast('No data — upload a file or paste data first.');return;}
+  if(!P.detected||!P.detected.length){toast('No data — upload a file or paste data first.');return;}
+
+  /* Recruiter checkboxes narrow which rows are reflected in the report —
+     they never re-gate the date+department detection itself. Rows with a
+     blank or unrecognised recruiter name always pass through. */
+  var checked=getCheckedMembers();
+  var checkedLower=checked.map(function(c){return c.toLowerCase();});
+  var rows=P.detected.filter(function(r){
+    var rc=(r.recruiter||r.member||'').trim();
+    if(!rc)return true;
+    var isKnown=HUB_MEMBERS.some(function(m){return m.name.toLowerCase()===rc.toLowerCase();});
+    if(!isKnown)return true;
+    return checkedLower.indexOf(rc.toLowerCase())>-1;
+  });
+  P.rows=(checked.length&&rows.length)?rows:P.detected;
+
   P.date=document.getElementById('up-date').value||toIn(new Date());
-  P.member=document.getElementById('up-member').value||'Unknown';
+  P.recruiters=checked.length?checked:detectRecruiters(P.detected);
+  P.member=P.recruiters.join(', ')||'Unknown';
   P.roleType=document.getElementById('up-role').value;
   P.dept=document.getElementById('up-dept').value||'';
   updateSbLast();fillMbSels();fillCmpMember();nav('report');genReport();
@@ -1487,22 +1528,21 @@ function genReport(){
   var reportDateFmt=fmtLong(reportDate);
   var reportDateShort=fmtShort(reportDate);
 
-  /* ── Resolve compare-against: recruiter selector → dept filter → date override ── */
-  var cmpMemberRaw=(document.getElementById('cmp-member')||{value:''}).value;
-  /* If dropdown is blank (auto), use the current session's recruiter */
-  var cmpMember=cmpMemberRaw||P.member;
+  /* ── Resolve compare-against: dept filter → date override ──
+     Recruiter is intentionally dropped from this match — a report is now
+     identified by date + department only, since several recruiters can
+     contribute to the same department on the same day. */
   var cmpDept=(document.getElementById('cmp-dept')||{value:''}).value||P.dept||'';
   var cmpDateOverride=(document.getElementById('cmp-date-override')||{value:''}).value||'';
 
   /* Find prev record: if user picked a specific date, use that.
      Otherwise scan backwards to find the most recent saved record
-     for this member+dept — skips weekends and days with no upload. */
+     for this department — skips weekends and days with no upload. */
   var allSaved=ls();
 
-  /* Build sorted list of all dates that have a real record for this member+dept */
+  /* Build sorted list of all dates that have a real record for this department */
   var candidateDates=allSaved
     .filter(function(r){
-      if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
       if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
       return r.rows&&r.rows.length;
     })
@@ -1520,7 +1560,6 @@ function genReport(){
     yesterdayStr=cmpDateOverride;
     var overrideCandidates=allSaved.filter(function(r){
       if(r.date!==cmpDateOverride)return false;
-      if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
       if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
       return r.rows&&r.rows.length;
     });
@@ -1533,7 +1572,6 @@ function genReport(){
         yesterdayStr=candidateDates[ci];
         var prevCandidates=allSaved.filter(function(r){
           if(r.date!==yesterdayStr)return false;
-          if((r.member||'').trim().toLowerCase()!==(cmpMember||'').trim().toLowerCase())return false;
           if(cmpDept&&r.dept&&r.dept.trim().toLowerCase()!==cmpDept.trim().toLowerCase())return false;
           return r.rows&&r.rows.length;
         });
@@ -1619,14 +1657,14 @@ function genReport(){
   H+='</div>';
   H+='<div style="text-align:right;font-size:12px;opacity:.75;line-height:1.9;">';
   H+='<div style="font-weight:700;letter-spacing:.06em;">OVERVIEW · '+escH(reportDateShort.toUpperCase())+'</div>';
-  if(!prevMissing)H+='<div style="font-size:11px;opacity:.7;">vs '+escH(yesterdayShort)+(cmpMember!==P.member?' · '+escH(cmpMember):'')+'</div>';
+  if(!prevMissing)H+='<div style="font-size:11px;opacity:.7;">vs '+escH(yesterdayShort)+'</div>';
   H+='</div></div>';
 
   /* ── MISSING PREV RECORD NOTICE ── */
   if(prevMissing){
     H+='<div style="background:#fffbeb;border-bottom:2px solid #fbbf24;padding:9px 18px;font-size:12px;color:#92400e;display:flex;align-items:center;gap:8px;">';
     H+='<span style="font-size:16px;">⚠</span>';
-    H+='<span><strong>No previous record found for '+escH(cmpMember)+'.</strong> Once at least one earlier day is saved to the Archive, the report will automatically compare against the last available working day — including skipping weekends.</span>';
+    H+='<span><strong>No previous record found for '+escH(cmpDept||P.dept||'this department')+'.</strong> Once at least one earlier day is saved to the Archive, the report will automatically compare against the last available working day — including skipping weekends.</span>';
     H+='</div>';
   }
 
@@ -1809,11 +1847,13 @@ function genReport(){
       var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()==='n/a'||(r.assessment||'').trim()==='';
 
       H+='<tr style="border-bottom:1px solid '+(isNew?'#bbf7d0':'#f0efeb')+';'+(isNew?'background:#f0fdf4;border-left:3px solid #16a34a;':'')+'">';
-      /* Role + location + date range */
+      /* Role + location + recruiter + date range */
+      var rowRecruiter=(r.recruiter||r.member||'').trim();
       H+='<td style="padding:6px 8px;font-weight:500;">';
       H+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
       H+=escH(r.roleTitle||'—');
       if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
+      if(rowRecruiter)H+='<span style="background:'+mCol(rowRecruiter)+';color:#fff;font-size:9px;font-weight:600;padding:1px 7px;border-radius:99px;white-space:nowrap;">'+escH(rowRecruiter)+'</span>';
       if(isNew)H+='<span style="background:#16a34a;color:#fff;font-size:9px;font-weight:500;padding:1px 7px;border-radius:99px;white-space:nowrap;">New role</span>';
       H+='</div>';
       if(dateRange)H+='<span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
@@ -2048,13 +2088,15 @@ function saveRecord(){
   if(!P.rows.length){toast('No data to save.');return;}
   var date=P.date||toIn(new Date());
   var dept=P.dept||'';
-  /* Key = date + member + dept — same person can save multiple departments per day */
-  var all=ls().filter(function(r){return!(r.date===date&&(r.member||'').trim().toLowerCase()===(P.member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());});
-  var rec={date:date,member:P.member,roleType:P.roleType,dept:dept,weekKey:wkKey(date),savedAt:new Date().toISOString(),snap:computeSnap(P.rows),rows:P.rows.slice()};
+  var recruiters=(P.recruiters&&P.recruiters.length)?P.recruiters:(P.member?P.member.split(',').map(function(s){return s.trim();}).filter(Boolean):[]);
+  /* Key = date + dept only — one combined record per department per day,
+     covering every recruiter who contributed to it. */
+  var all=ls().filter(function(r){return!(r.date===date&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());});
+  var rec={date:date,member:recruiters.join(', ')||'Unknown',recruiters:recruiters,roleType:P.roleType,dept:dept,weekKey:wkKey(date),savedAt:new Date().toISOString(),snap:computeSnap(P.rows),rows:P.rows.slice()};
   all.push(rec);all.sort(function(a,b){return a.date>b.date?-1:a.date<b.date?1:0;});ss(all);
   var m=lm();m.lastSaved=new Date().toISOString();sm(m);
   fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();updateSbLast();
-  toast('✓ Saved: '+date+' · '+P.member+(dept?' · '+dept:''));
+  toast('✓ Saved: '+date+(dept?' · '+dept:'')+(recruiters.length?' · '+recruiters.join(', '):''));
 }
 function updateSbLast(){var all=ls(),el=document.getElementById('sb-last');if(!el)return;if(all.length){var l=all[all.length-1];el.textContent='Last: '+l.date+' ('+l.member+')';}else el.textContent='No records yet';}
 function fillWeekSels(){
@@ -2064,7 +2106,9 @@ function fillWeekSels(){
   if(prev&&wks.indexOf(prev)>-1)s.value=prev;
 }
 function fillMbSels(){
-  var mb={};ls().forEach(function(r){mb[r.member]=1;});if(P.member)mb[P.member]=1;
+  var mb={};
+  ls().forEach(function(r){((r.recruiters&&r.recruiters.length)?r.recruiters:[r.member]).forEach(function(m){if(m)mb[m]=1;});});
+  (P.recruiters&&P.recruiters.length?P.recruiters:[P.member]).forEach(function(m){if(m)mb[m]=1;});
   var mbs=Object.keys(mb).sort();var base='<option value="all">All members</option>';
   ['arc-mb'].forEach(function(id){var s=document.getElementById(id);if(s)s.innerHTML=base+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');});
 }
@@ -2096,24 +2140,16 @@ function fillDateSels(){
   }
 }
 
-/* ════ COMPARE SELECTORS ════ */
+/* ════ COMPARE SELECTORS ════
+   The Daily Report's "compare against" card no longer has a recruiter
+   selector — matching is by date + department only. fillCmpMember() is
+   kept as a thin alias (called from several refresh chains) so it just
+   re-fills the department + date-override dropdowns. */
 function fillCmpMember(){
-  var s=document.getElementById('cmp-member');if(!s)return;
-  /* Always seed with full team from HUB_MEMBERS, excluding special users */
-  var members={};
-  HUB_MEMBERS.filter(function(m){return HUB_SPECIAL.indexOf(m.name)===-1;})
-    .forEach(function(m){members[m.name]=1;});
-  /* Also add anyone from saved records (in case of name changes) */
-  ls().forEach(function(r){if(r.member)members[r.member]=1;});
-  var mbs=Object.keys(members).sort();
-  var prev=s.value;
-  s.innerHTML='<option value="">— auto (same recruiter)</option>'+mbs.map(function(m){return'<option value="'+escH(m)+'">'+escH(m)+'</option>';}).join('');
-  if(prev&&members[prev])s.value=prev;
   fillCmpDepts();
 }
 function fillCmpDepts(){
   var s=document.getElementById('cmp-dept');if(!s)return;
-  var member=(document.getElementById('cmp-member')||{value:''}).value||P.member;
   var depts={};
   /* Always seed with all static departments from the upload page */
   var ALL_DEPTS=['Student Placement','Student Experience','Talent','Finance','Global','Central Marketing','Central Operations','Product','Engineering','K12 Cialfo & BridgeU','Explore','Kaaiser'];
@@ -2121,7 +2157,7 @@ function fillCmpDepts(){
   /* Add current session dept so it appears immediately after upload */
   if(P.dept)depts[P.dept]=1;
   /* Add any dept from saved records */
-  ls().filter(function(r){return!member||(r.member||'').trim().toLowerCase()===member.trim().toLowerCase();}).forEach(function(r){if(r.dept)depts[r.dept]=1;});
+  ls().forEach(function(r){if(r.dept)depts[r.dept]=1;});
   var ds=Object.keys(depts).sort();
   var prev=s.value;
   s.innerHTML='<option value="">— all departments</option>'+ds.map(function(d){return'<option value="'+escH(d)+'">'+escH(d)+'</option>';}).join('');
@@ -2132,10 +2168,8 @@ function fillCmpDepts(){
 }
 function fillCmpDates(){
   var s=document.getElementById('cmp-date-override');if(!s)return;
-  var member=((document.getElementById('cmp-member')||{value:''}).value||P.member||'').trim().toLowerCase();
   var dept=((document.getElementById('cmp-dept')||{value:''}).value||'').trim().toLowerCase();
   var dates=ls().filter(function(r){
-    if(member&&(r.member||'').trim().toLowerCase()!==member)return false;
     if(dept&&(r.dept||'').trim().toLowerCase()!==dept)return false;
     return true;
   }).map(function(r){return r.date;}).filter(function(d,i,a){return a.indexOf(d)===i;}).sort().reverse();
@@ -2149,7 +2183,10 @@ function renderArchive(){
   var all=ls();
   var q=(document.getElementById('arc-q')||{value:''}).value.toLowerCase();
   var mf=(document.getElementById('arc-mb')||{value:'all'}).value;
-  var fil=all.filter(function(r){return(mf==='all'||r.member===mf)&&(!q||(r.date+' '+r.member).toLowerCase().indexOf(q)>-1);}).reverse();
+  var fil=all.filter(function(r){
+    var recs=(r.recruiters&&r.recruiters.length)?r.recruiters:[r.member];
+    return(mf==='all'||recs.indexOf(mf)>-1)&&(!q||(r.date+' '+(r.member||'')+' '+(r.dept||'')).toLowerCase().indexOf(q)>-1);
+  }).reverse();
   var tb=document.getElementById('arc-body');if(!tb)return;
   if(!fil.length){tb.innerHTML='<tr><td colspan="19"><div class="empty">No records.</div></td></tr>';return;}
   var arcIndex=[];
@@ -2176,25 +2213,25 @@ function renderArchive(){
   /* store index for button callbacks */
   window._arcIndex=arcIndex;
 }
-function loadRec(date,member,dept){
+function loadRec(date,dept){
   dept=dept||'';
-  var rec=ls().find(function(r){return r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase();});
-  if(!rec)rec=ls().find(function(r){return r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase();});
+  var rec=ls().find(function(r){return r.date===date&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase();});
   if(!rec){toast('Not found.');return;}
-  P={rows:rec.rows||[],date:rec.date,member:rec.member,roleType:rec.roleType||'recruiter',dept:rec.dept||''};
+  var recruiters=(rec.recruiters&&rec.recruiters.length)?rec.recruiters:(rec.member?rec.member.split(',').map(function(s){return s.trim();}).filter(Boolean):[]);
+  P={rows:rec.rows||[],detected:rec.rows||[],recruiters:recruiters,date:rec.date,member:rec.member,roleType:rec.roleType||'recruiter',dept:rec.dept||''};
   document.getElementById('up-date').value=rec.date;
-  document.getElementById('up-member').value=rec.member;
   document.getElementById('up-dept').value=rec.dept||'';
-  nav('report');genReport();toast('Loaded: '+date+' · '+member+(rec.dept?' · '+rec.dept:''));
+  renderMemberCheckboxes(recruiters);
+  nav('report');genReport();toast('Loaded: '+date+(rec.dept?' · '+rec.dept:'')+(recruiters.length?' · '+recruiters.join(', '):''));
 }
-function delRec(date,member,dept){
+function delRec(date,dept){
   dept=dept||'';
   if(!confirm('Delete this record?'))return;
-  ss(ls().filter(function(r){return!(r.date===date&&(r.member||'').trim().toLowerCase()===(member||'').trim().toLowerCase()&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());}));
+  ss(ls().filter(function(r){return!(r.date===date&&(r.dept||'').trim().toLowerCase()===(dept||'').trim().toLowerCase());}));
   fillWeekSels();fillMbSels();fillDateSels();fillCmpMember();fillAccumDates();renderArchive();toast('Deleted.');
 }
-function arcLoad(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}loadRec(r.date,r.member,r.dept||'');}
-function arcDel(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}delRec(r.date,r.member,r.dept||'');}
+function arcLoad(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}loadRec(r.date,r.dept||'');}
+function arcDel(i){var r=window._arcIndex&&window._arcIndex[i];if(!r){toast('Not found.');return;}delRec(r.date,r.dept||'');}
 
 /* ════ ACCUMULATED REPORT ════ */
 
@@ -2468,9 +2505,11 @@ function genAccum(){
         var assIsNA=(r.assessment||'').trim().toLowerCase()==='na'||(r.assessment||'').trim().toLowerCase()==='n/a'||(r.assessment||'').trim()==='';
 
         H+='<tr style="border-bottom:1px solid '+(isNew?'#bbf7d0':'#f0efeb')+';'+(isNew?'background:#f0fdf4;border-left:3px solid #16a34a;':'')+'">';
+        var rowRecruiter2=(r.recruiter||r.member||'').trim();
         H+='<td style="padding:6px 8px;font-weight:500;border-right:1px solid #e4e2da;">';
         H+=escH(r.roleTitle||'—');
         if(r.location)H+=' <span style="color:#888;font-weight:400;font-size:10px;">'+escH(r.location)+'</span>';
+        if(rowRecruiter2)H+='<span style="background:'+mCol(rowRecruiter2)+';color:#fff;font-size:9px;font-weight:600;padding:1px 7px;border-radius:99px;white-space:nowrap;margin-left:4px;">'+escH(rowRecruiter2)+'</span>';
         if(isNew)H+='<span style="background:#16a34a;color:#fff;font-size:9px;font-weight:500;padding:1px 7px;border-radius:99px;white-space:nowrap;margin-left:4px;">New role</span>';
         if(dateRange)H+='<br><span style="font-size:9px;color:#aaa;">'+escH(dateRange)+'</span>';
         H+='</td>';
